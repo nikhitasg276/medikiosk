@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>MediKiosk - HIS Integration</title>
+
+    <link rel="stylesheet" href="style.css">
+
+    <style>
+
+        .his-container {
+            width: 90%;
+            max-width: 900px;
+            margin: 20px auto;
+        }
+
+        .card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            margin-top: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.12);
+            text-align: left;
+        }
+
+        .patient-info {
+            background: #f5f5f5;
+            padding: 18px;
+            border-radius: 10px;
+            margin-top: 15px;
+        }
+
+        .info-row {
+            margin: 10px 0;
+        }
+
+        .info-row strong {
+            display: inline-block;
+            min-width: 170px;
+        }
+
+        .status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            font-weight: bold;
+            display: none;
+        }
+
+        .sync-btn {
+            margin-top: 20px;
+            padding: 14px 25px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 17px;
+        }
+
+        .sync-btn:hover {
+            transform: scale(1.03);
+        }
+
+        .back-btn {
+            margin-top: 20px;
+        }
+
+        .his-logo {
+            font-size: 60px;
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+<div class="home-container">
+
+    <div class="his-logo">
+        🏥
+    </div>
+
+    <h1 id="title">
+        HIS Integration
+    </h1>
+
+    <p id="subtitle">
+        Hospital Information System
+    </p>
+
+
+    <div class="his-container">
+
+
+        <!-- =========================================
+             HIS INFORMATION
+        ========================================== -->
+
+        <div class="card">
+
+            <h2 id="integrationTitle">
+                🔗 MediKiosk → Hospital HIS
+            </h2>
+
+            <p id="description">
+                Patient information collected through MediKiosk
+                can be transferred to the Hospital Information System.
+            </p>
+
+        </div>
+
+
+        <!-- =========================================
+             PATIENT INFORMATION
+        ========================================== -->
+
+        <div class="card">
+
+            <h2 id="patientTitle">
+                👤 Patient Information
+            </h2>
+
+            <div id="patientInfo"
+                 class="patient-info">
+
+                Loading patient information...
+
+            </div>
+
+        </div>
+
+
+        <!-- =========================================
+             SYNC
+        ========================================== -->
+
+        <div class="card">
+
+            <h2 id="syncTitle">
+                🔄 HIS Synchronization
+            </h2>
+
+            <p id="syncDescription">
+                Send the patient's structured information
+                to the hospital HIS.
+            </p>
+
+            <button
+                class="sync-btn"
+                onclick="syncToHIS()"
+                id="syncBtn">
+
+                🔄 Sync to Hospital HIS
+
+            </button>
+
+
+            <div id="status"
+                 class="status">
+            </div>
+
+        </div>
+
+
+        <button
+            onclick="goBack()"
+            id="backBtn"
+            class="back-btn">
+
+            ⬅️ Back to Doctor Dashboard
+
+        </button>
+
+    </div>
+
+</div>
+
+
+
+<script>
+
+/* =====================================================
+   LANGUAGE
+===================================================== */
+
+const params =
+    new URLSearchParams(window.location.search);
+
+const language =
+    params.get("lang") || "en";
+
+
+/* =====================================================
+   LOGGED-IN USER
+===================================================== */
+
+const loggedInUser =
+    localStorage.getItem("loggedInUser");
+
+
+/* =====================================================
+   TEXT
+===================================================== */
+
+const texts = {
+
+    en: {
+
+        title:
+            "HIS Integration",
+
+        subtitle:
+            "Hospital Information System",
+
+        integration:
+            "🔗 MediKiosk → Hospital HIS",
+
+        description:
+            "Patient information collected through MediKiosk can be transferred to the Hospital Information System.",
+
+        patient:
+            "👤 Patient Information",
+
+        sync:
+            "🔄 HIS Synchronization",
+
+        syncDescription:
+            "Send the patient's structured information to the hospital HIS.",
+
+        syncBtn:
+            "🔄 Sync to Hospital HIS",
+
+        synced:
+            "✅ Patient information successfully synchronized with HIS (Demo).",
+
+        noData:
+            "No patient information available.",
+
+        name:
+            "Patient Name",
+
+        age:
+            "Age",
+
+        gender:
+            "Gender",
+
+        complaint:
+            "Main Problem",
+
+        symptoms:
+            "Symptoms",
+
+        history:
+            "Medical History",
+
+        allergies:
+            "Allergies",
+
+        medicines:
+            "Current Medicines",
+
+        back:
+            "⬅️ Back to Doctor Dashboard"
+
+    },
+
+
+    kn: {
+
+        title:
+            "HIS ಸಂಪರ್ಕ",
+
+        subtitle:
+            "ಆಸ್ಪತ್ರೆ ಮಾಹಿತಿ ವ್ಯವಸ್ಥೆ",
+
+        integration:
+            "🔗 MediKiosk → ಆಸ್ಪತ್ರೆ HIS",
+
+        description:
+            "MediKiosk ಮೂಲಕ ಸಂಗ್ರಹಿಸಿದ ರೋಗಿಯ ಮಾಹಿತಿಯನ್ನು ಆಸ್ಪತ್ರೆಯ HIS ಗೆ ಕಳುಹಿಸಬಹುದು.",
+
+        patient:
+            "👤 ರೋಗಿಯ ಮಾಹಿತಿ",
+
+        sync:
+            "🔄 HIS ಸಿಂಕ್ರೊನೈಸೇಶನ್",
+
+        syncDescription:
+            "ರೋಗಿಯ ರಚನಾತ್ಮಕ ಮಾಹಿತಿಯನ್ನು ಆಸ್ಪತ್ರೆಯ HIS ಗೆ ಕಳುಹಿಸಿ.",
+
+        syncBtn:
+            "🔄 ಆಸ್ಪತ್ರೆ HIS ಗೆ ಸಿಂಕ್ ಮಾಡಿ",
+
+        synced:
+            "✅ ರೋಗಿಯ ಮಾಹಿತಿ HIS ಗೆ ಯಶಸ್ವಿಯಾಗಿ ಸಿಂಕ್ ಮಾಡಲಾಗಿದೆ (Demo).",
+
+        noData:
+            "ಯಾವುದೇ ರೋಗಿಯ ಮಾಹಿತಿ ಲಭ್ಯವಿಲ್ಲ.",
+
+        name:
+            "ರೋಗಿಯ ಹೆಸರು",
+
+        age:
+            "ವಯಸ್ಸು",
+
+        gender:
+            "ಲಿಂಗ",
+
+        complaint:
+            "ಮುಖ್ಯ ಸಮಸ್ಯೆ",
+
+        symptoms:
+            "ಲಕ್ಷಣಗಳು",
+
+        history:
+            "ವೈದ್ಯಕೀಯ ಇತಿಹಾಸ",
+
+        allergies:
+            "ಅಲರ್ಜಿ",
+
+        medicines:
+            "ಪ್ರಸ್ತುತ ಔಷಧಿಗಳು",
+
+        back:
+            "⬅️ ವೈದ್ಯರ ಡ್ಯಾಶ್‌ಬೋರ್ಡ್‌ಗೆ ಹಿಂತಿರುಗಿ"
+
+    },
+
+
+    hi: {
+
+        title:
+            "HIS एकीकरण",
+
+        subtitle:
+            "अस्पताल सूचना प्रणाली",
+
+        integration:
+            "🔗 MediKiosk → अस्पताल HIS",
+
+        description:
+            "MediKiosk के माध्यम से एकत्र मरीज की जानकारी को अस्पताल HIS में भेजा जा सकता है।",
+
+        patient:
+            "👤 मरीज की जानकारी",
+
+        sync:
+            "🔄 HIS सिंक्रोनाइज़ेशन",
+
+        syncDescription:
+            "मरीज की संरचित जानकारी अस्पताल HIS में भेजें।",
+
+        syncBtn:
+            "🔄 अस्पताल HIS में सिंक करें",
+
+        synced:
+            "✅ मरीज की जानकारी HIS में सफलतापूर्वक सिंक की गई (Demo)।",
+
+        noData:
+            "मरीज की कोई जानकारी उपलब्ध नहीं है।",
+
+        name:
+            "मरीज का नाम",
+
+        age:
+            "उम्र",
+
+        gender:
+            "लिंग",
+
+        complaint:
+            "मुख्य समस्या",
+
+        symptoms:
+            "लक्षण",
+
+        history:
+            "चिकित्सा इतिहास",
+
+        allergies:
+            "एलर्जी",
+
+        medicines:
+            "वर्तमान दवाएं",
+
+        back:
+            "⬅️ डॉक्टर डैशबोर्ड पर वापस जाएं"
+
+    }
+
+};
+
+
+const t =
+    texts[language] || texts.en;
+
+
+/* =====================================================
+   APPLY LANGUAGE
+===================================================== */
+
+document.getElementById("title").innerText =
+    t.title;
+
+document.getElementById("subtitle").innerText =
+    t.subtitle;
+
+document.getElementById("integrationTitle").innerText =
+    t.integration;
+
+document.getElementById("description").innerText =
+    t.description;
+
+document.getElementById("patientTitle").innerText =
+    t.patient;
+
+document.getElementById("syncTitle").innerText =
+    t.sync;
+
+document.getElementById("syncDescription").innerText =
+    t.syncDescription;
+
+document.getElementById("syncBtn").innerText =
+    t.syncBtn;
+
+document.getElementById("backBtn").innerText =
+    t.back;
+
+
+/* =====================================================
+   GET PATIENT DATA
+===================================================== */
+
+let patients = [];
+
+try {
+
+    patients =
+        JSON.parse(
+            localStorage.getItem("patients") || "[]"
+        );
+
+}
+catch(error) {
+
+    patients = [];
+
+}
+
+
+/* =====================================================
+   FIND CURRENT PATIENT
+===================================================== */
+
+let patient = null;
+
+if (loggedInUser) {
+
+    patient =
+        patients
+        .filter(function(item) {
+
+            return String(item.username || "")
+                .trim()
+                .toLowerCase() ===
+                String(loggedInUser)
+                .trim()
+                .toLowerCase();
+
+        })
+        .slice(-1)[0];
+
+}
+
+
+/* =====================================================
+   DISPLAY PATIENT
+===================================================== */
+
+const patientInfo =
+    document.getElementById("patientInfo");
+
+
+if (!patient) {
+
+    patientInfo.innerHTML = `
+
+        <p>
+            ${t.noData}
+        </p>
+
+    `;
+
+}
+else {
+
+    patientInfo.innerHTML = `
+
+        <div class="info-row">
+            <strong>${t.name}:</strong>
+            ${escapeHTML(patient.name || "Not provided")}
+        </div>
+
+        <div class="info-row">
+            <strong>${t.age}:</strong>
+            ${escapeHTML(patient.age || "Not provided")}
+        </div>
+
+        <div class="info-row">
+            <strong>${t.gender}:</strong>
+            ${escapeHTML(patient.gender || "Not provided")}
+        </div>
+
+        <div class="info-row">
+            <strong>${t.complaint}:</strong>
+            ${escapeHTML(patient.complaint || "Not provided")}
+        </div>
+
+        <div class="info-row">
+            <strong>${t.symptoms}:</strong>
+            ${escapeHTML(patient.symptoms || "Not provided")}
+        </div>
+
+        <div class="info-row">
+            <strong>${t.history}:</strong>
+            ${escapeHTML(patient.history || "Not provided")}
+        </div>
+
+        <div class="info-row">
+            <strong>${t.allergies}:</strong>
+            ${escapeHTML(patient.allergies || "Not provided")}
+        </div>
+
+        <div class="info-row">
+            <strong>${t.medicines}:</strong>
+            ${escapeHTML(patient.medicines || "Not provided")}
+        </div>
+
+    `;
+
+}
+
+
+/* =====================================================
+   SYNC TO HIS
+===================================================== */
+
+function syncToHIS() {
+
+    if (!patient) {
+
+        alert(t.noData);
+
+        return;
+
+    }
+
+
+    const hisRecord = {
+
+        patient:
+            patient,
+
+        syncedAt:
+            new Date().toLocaleString(),
+
+        source:
+            "MediKiosk",
+
+        destination:
+            "Hospital HIS",
+
+        status:
+            "Synchronized"
+
+    };
+
+
+    let hisRecords = [];
+
+    try {
+
+        hisRecords =
+            JSON.parse(
+                localStorage.getItem("hisRecords") || "[]"
+            );
+
+    }
+    catch(error) {
+
+        hisRecords = [];
+
+    }
+
+
+    hisRecords.push(hisRecord);
+
+
+    localStorage.setItem(
+        "hisRecords",
+        JSON.stringify(hisRecords)
+    );
+
+
+    const status =
+        document.getElementById("status");
+
+
+    status.style.display =
+        "block";
+
+    status.innerText =
+        t.synced;
+
+}
+
+
+/* =====================================================
+   ESCAPE HTML
+===================================================== */
+
+function escapeHTML(value) {
+
+    return String(value)
+
+        .replace(/&/g, "&amp;")
+
+        .replace(/</g, "&lt;")
+
+        .replace(/>/g, "&gt;")
+
+        .replace(/"/g, "&quot;")
+
+        .replace(/'/g, "&#039;");
+
+}
+
+
+/* =====================================================
+   BACK
+===================================================== */
+
+function goBack() {
+
+    window.location.href =
+        "doctor-dashboard.html?lang=" +
+        encodeURIComponent(language);
+
+}
+
+</script>
+
+</body>
+
+</html>

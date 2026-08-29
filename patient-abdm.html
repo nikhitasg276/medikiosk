@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>MediKiosk - ABDM</title>
+
+    <link rel="stylesheet" href="style.css">
+
+    <style>
+        .abdm-card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            margin: 25px auto;
+            max-width: 700px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.12);
+        }
+
+        .abdm-icon {
+            font-size: 55px;
+        }
+
+        .info-box {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            text-align: left;
+        }
+
+        .consent-btn {
+            margin: 10px;
+        }
+
+        #status {
+            font-weight: bold;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="home-container">
+
+    <div class="abdm-icon">🇮🇳</div>
+
+    <h1 id="title">ABDM / Digital Health</h1>
+
+    <p id="subtitle">
+        Manage your digital health record sharing consent
+    </p>
+
+    <div class="abdm-card">
+
+        <h2 id="heading">
+            🔐 Patient Consent
+        </h2>
+
+        <div class="info-box">
+            <p id="info">
+                You can allow your medical information to be
+                shared with authorized doctors or hospitals.
+            </p>
+        </div>
+
+        <button onclick="giveConsent()" id="allowBtn">
+            ✅ Allow Consent
+        </button>
+
+        <button onclick="removeConsent()" id="denyBtn">
+            ❌ Don't Allow
+        </button>
+
+        <p id="status"></p>
+
+    </div>
+
+    <button onclick="goBack()" id="backBtn">
+        ⬅️ Back to Dashboard
+    </button>
+
+</div>
+
+
+<script>
+
+const params =
+    new URLSearchParams(window.location.search);
+
+const language =
+    params.get("lang") || "en";
+
+const loggedInUser =
+    localStorage.getItem("loggedInUser");
+
+
+const texts = {
+
+    en: {
+        title: "ABDM / Digital Health",
+        subtitle: "Manage your digital health record sharing consent",
+        heading: "🔐 Patient Consent",
+        info: "You can allow your medical information to be shared with authorized doctors or hospitals.",
+        allow: "✅ Allow Consent",
+        deny: "❌ Don't Allow",
+        allowed: "✅ Health record sharing enabled (Demo)",
+        denied: "❌ Health record sharing disabled",
+        back: "⬅️ Back to Dashboard"
+    },
+
+    kn: {
+        title: "ABDM / ಡಿಜಿಟಲ್ ಆರೋಗ್ಯ",
+        subtitle: "ನಿಮ್ಮ ಡಿಜಿಟಲ್ ಆರೋಗ್ಯ ದಾಖಲೆ ಹಂಚಿಕೆ ಅನುಮತಿಯನ್ನು ನಿರ್ವಹಿಸಿ",
+        heading: "🔐 ರೋಗಿಯ ಅನುಮತಿ",
+        info: "ಅಧಿಕೃತ ವೈದ್ಯರು ಅಥವಾ ಆಸ್ಪತ್ರೆಗಳೊಂದಿಗೆ ನಿಮ್ಮ ವೈದ್ಯಕೀಯ ಮಾಹಿತಿಯನ್ನು ಹಂಚಿಕೊಳ್ಳಲು ನೀವು ಅನುಮತಿ ನೀಡಬಹುದು.",
+        allow: "✅ ಅನುಮತಿ ನೀಡಿ",
+        deny: "❌ ಅನುಮತಿ ನೀಡಬೇಡಿ",
+        allowed: "✅ ಆರೋಗ್ಯ ದಾಖಲೆ ಹಂಚಿಕೆ ಸಕ್ರಿಯವಾಗಿದೆ (ಡೆಮೊ)",
+        denied: "❌ ಆರೋಗ್ಯ ದಾಖಲೆ ಹಂಚಿಕೆ ನಿಷ್ಕ್ರಿಯವಾಗಿದೆ",
+        back: "⬅️ ಡ್ಯಾಶ್‌ಬೋರ್ಡ್‌ಗೆ ಹಿಂತಿರುಗಿ"
+    },
+
+    hi: {
+        title: "ABDM / डिजिटल स्वास्थ्य",
+        subtitle: "अपने डिजिटल स्वास्थ्य रिकॉर्ड साझा करने की अनुमति प्रबंधित करें",
+        heading: "🔐 मरीज की अनुमति",
+        info: "आप अधिकृत डॉक्टर या अस्पताल के साथ अपनी चिकित्सा जानकारी साझा करने की अनुमति दे सकते हैं।",
+        allow: "✅ अनुमति दें",
+        deny: "❌ अनुमति न दें",
+        allowed: "✅ स्वास्थ्य रिकॉर्ड साझा करना सक्षम है (डेमो)",
+        denied: "❌ स्वास्थ्य रिकॉर्ड साझा करना बंद है",
+        back: "⬅️ डैशबोर्ड पर वापस जाएं"
+    }
+
+};
+
+const t =
+    texts[language] || texts.en;
+
+
+/* LANGUAGE */
+
+document.getElementById("title").innerText = t.title;
+document.getElementById("subtitle").innerText = t.subtitle;
+document.getElementById("heading").innerText = t.heading;
+document.getElementById("info").innerText = t.info;
+document.getElementById("allowBtn").innerText = t.allow;
+document.getElementById("denyBtn").innerText = t.deny;
+document.getElementById("backBtn").innerText = t.back;
+
+
+/* GIVE CONSENT */
+
+function giveConsent() {
+
+    localStorage.setItem(
+        "abdmConsent_" + loggedInUser,
+        "true"
+    );
+
+    document.getElementById("status").innerText =
+        t.allowed;
+}
+
+
+/* REMOVE CONSENT */
+
+function removeConsent() {
+
+    localStorage.setItem(
+        "abdmConsent_" + loggedInUser,
+        "false"
+    );
+
+    document.getElementById("status").innerText =
+        t.denied;
+}
+
+
+/* SHOW PREVIOUS STATUS */
+
+const savedConsent =
+    localStorage.getItem(
+        "abdmConsent_" + loggedInUser
+    );
+
+if (savedConsent === "true") {
+
+    document.getElementById("status").innerText =
+        t.allowed;
+
+}
+
+else if (savedConsent === "false") {
+
+    document.getElementById("status").innerText =
+        t.denied;
+
+}
+
+
+/* BACK */
+
+function goBack() {
+
+    window.location.href =
+        "dashboard.html?role=patient&lang=" +
+        encodeURIComponent(language);
+
+}
+
+</script>
+
+</body>
+</html>

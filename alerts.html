@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>MediKiosk - Red Flag Alerts</title>
+
+    <link rel="stylesheet" href="style.css">
+
+    <style>
+        .alert-card {
+            background: #fff3f3;
+            border: 2px solid #ff4d4d;
+            padding: 25px;
+            border-radius: 15px;
+            margin-top: 25px;
+            text-align: left;
+        }
+
+        .no-alert {
+            background: #f0fff4;
+            border: 2px solid #4caf50;
+            padding: 25px;
+            border-radius: 15px;
+            margin-top: 25px;
+        }
+
+        .alert-item {
+            padding: 12px;
+            margin: 10px 0;
+            background: white;
+            border-radius: 10px;
+            border-left: 5px solid red;
+        }
+    </style>
+
+</head>
+
+<body>
+
+<div class="home-container">
+
+    <div class="logo">🚨</div>
+
+    <h1 id="title">Red-Flag Alerts</h1>
+
+    <p id="subtitle">
+        Important symptoms requiring immediate attention
+    </p>
+
+    <div id="alertsContainer"></div>
+
+    <br>
+
+    <button onclick="goBack()" id="backBtn">
+        ← Back to Dashboard
+    </button>
+
+</div>
+
+
+<script>
+
+/* =========================
+   LANGUAGE
+========================= */
+
+const params =
+    new URLSearchParams(window.location.search);
+
+const language =
+    params.get("lang") || "en";
+
+
+/* =========================
+   LANGUAGE TEXT
+========================= */
+
+const texts = {
+
+    en: {
+        title: "Red-Flag Alerts",
+        subtitle: "Important symptoms requiring immediate attention",
+        alertTitle: "🚨 Priority Alert",
+        noAlert: "✅ No red-flag symptoms detected.",
+        action: "Please alert medical staff immediately.",
+        back: "← Back to Dashboard"
+    },
+
+    kn: {
+        title: "ತುರ್ತು ಎಚ್ಚರಿಕೆಗಳು",
+        subtitle: "ತಕ್ಷಣದ ಗಮನ ಅಗತ್ಯವಿರುವ ಪ್ರಮುಖ ಲಕ್ಷಣಗಳು",
+        alertTitle: "🚨 ತುರ್ತು ಎಚ್ಚರಿಕೆ",
+        noAlert: "✅ ಯಾವುದೇ ತುರ್ತು ಲಕ್ಷಣಗಳು ಕಂಡುಬಂದಿಲ್ಲ.",
+        action: "ದಯವಿಟ್ಟು ತಕ್ಷಣ ವೈದ್ಯಕೀಯ ಸಿಬ್ಬಂದಿಗೆ ಮಾಹಿತಿ ನೀಡಿ.",
+        back: "← ಡ್ಯಾಶ್‌ಬೋರ್ಡ್‌ಗೆ ಹಿಂತಿರುಗಿ"
+    },
+
+    hi: {
+        title: "आपातकालीन चेतावनी",
+        subtitle: "तुरंत ध्यान देने वाले महत्वपूर्ण लक्षण",
+        alertTitle: "🚨 प्राथमिकता चेतावनी",
+        noAlert: "✅ कोई आपातकालीन लक्षण नहीं पाए गए।",
+        action: "कृपया तुरंत चिकित्सा कर्मचारियों को सूचित करें।",
+        back: "← डैशबोर्ड पर वापस जाएं"
+    }
+
+};
+
+const t =
+    texts[language] || texts.en;
+
+
+/* =========================
+   APPLY LANGUAGE
+========================= */
+
+document.getElementById("title").innerText =
+    t.title;
+
+document.getElementById("subtitle").innerText =
+    t.subtitle;
+
+document.getElementById("backBtn").innerText =
+    t.back;
+
+
+/* =========================
+   GET PATIENT CASES
+========================= */
+
+const patients =
+    JSON.parse(
+        localStorage.getItem("patients") || "[]"
+    );
+
+
+const alertsContainer =
+    document.getElementById("alertsContainer");
+
+
+/* =========================
+   RED FLAG KEYWORDS
+========================= */
+
+const redFlags = {
+
+    en: [
+        "chest pain",
+        "difficulty breathing",
+        "breathing difficulty",
+        "shortness of breath",
+        "severe bleeding",
+        "unconscious",
+        "fainting",
+        "seizure",
+        "stroke",
+        "severe headache"
+    ],
+
+    kn: [
+        "ಎದೆ ನೋವು",
+        "ಉಸಿರಾಟದ ತೊಂದರೆ",
+        "ಉಸಿರಾಟ ಕಷ್ಟ",
+        "ತೀವ್ರ ರಕ್ತಸ್ರಾವ",
+        "ಪ್ರಜ್ಞೆ ತಪ್ಪುವುದು",
+        "ಮೂರ್ಛೆ",
+        "ಪಾರ್ಶ್ವವಾಯು"
+    ],
+
+    hi: [
+        "सीने में दर्द",
+        "सांस लेने में कठिनाई",
+        "सांस की तकलीफ",
+        "भारी रक्तस्राव",
+        "बेहोशी",
+        "दौरा",
+        "स्ट्रोक"
+    ]
+
+};
+
+
+const keywords =
+    redFlags[language] || redFlags.en;
+
+
+/* =========================
+   CHECK RED FLAGS
+========================= */
+
+let foundAlerts = [];
+
+
+patients.forEach(function(patient) {
+
+    const text = (
+
+        (patient.complaint || "") +
+        " " +
+        (patient.symptoms || "") +
+        " " +
+        (patient.history || "")
+
+    ).toLowerCase();
+
+
+    keywords.forEach(function(keyword) {
+
+        if (
+            text.includes(keyword.toLowerCase())
+        ) {
+
+            foundAlerts.push({
+
+                patient: patient.name || "Unknown Patient",
+
+                symptom: keyword
+
+            });
+
+        }
+
+    });
+
+});
+
+
+/* =========================
+   REMOVE DUPLICATES
+========================= */
+
+foundAlerts =
+    foundAlerts.filter(
+
+        function(alert, index, self) {
+
+            return index === self.findIndex(
+
+                function(a) {
+
+                    return (
+                        a.patient === alert.patient &&
+                        a.symptom === alert.symptom
+                    );
+
+                }
+
+            );
+
+        }
+
+    );
+
+
+/* =========================
+   DISPLAY ALERTS
+========================= */
+
+if (foundAlerts.length === 0) {
+
+    alertsContainer.innerHTML = `
+
+        <div class="no-alert">
+
+            <h2>
+                ${t.noAlert}
+            </h2>
+
+        </div>
+
+    `;
+
+}
+
+else {
+
+    let html = `
+
+        <div class="alert-card">
+
+            <h2>
+                ${t.alertTitle}
+            </h2>
+
+    `;
+
+
+    foundAlerts.forEach(function(alert) {
+
+        html += `
+
+            <div class="alert-item">
+
+                <strong>
+                    👤 Patient: ${alert.patient}
+                </strong>
+
+                <p>
+                    🚨 Possible red-flag symptom:
+                    <strong>${alert.symptom}</strong>
+                </p>
+
+                <p>
+                    ${t.action}
+                </p>
+
+            </div>
+
+        `;
+
+    });
+
+
+    html += `</div>`;
+
+    alertsContainer.innerHTML =
+        html;
+
+}
+
+
+/* =========================
+   BACK TO DASHBOARD
+========================= */
+
+function goBack() {
+
+    window.location.href =
+        "doctor-dashboard.html?role=doctor&lang=" +
+        language;
+
+}
+
+</script>
+
+</body>
+
+</html>

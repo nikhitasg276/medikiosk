@@ -1,0 +1,989 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+```
+<title>MediKiosk - Doctor Dashboard</title>
+
+<link rel="stylesheet" href="style.css">
+
+<style>
+    body {
+        margin: 0;
+        font-family: Arial, sans-serif;
+        background: #eef7ff;
+    }
+
+    .doctor-container {
+        width: 90%;
+        max-width: 1000px;
+        margin: 30px auto;
+        background: white;
+        padding: 30px;
+        border-radius: 20px;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
+    }
+
+    .doctor-header {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+
+    .doctor-logo {
+        font-size: 55px;
+    }
+
+    .doctor-header h1 {
+        margin: 10px 0;
+        color: #1976d2;
+    }
+
+    .doctor-header p {
+        color: #666;
+    }
+
+    .patient-card {
+        border: 2px solid #1976d2;
+        border-radius: 15px;
+        margin-bottom: 25px;
+        overflow: hidden;
+        background: #f9fcff;
+    }
+
+    .patient-header {
+        background: #1976d2;
+        color: white;
+        padding: 18px;
+    }
+
+    .patient-header h2 {
+        margin: 0;
+    }
+
+    .patient-body {
+        padding: 20px;
+    }
+
+    .info-row {
+        padding: 10px 0;
+        border-bottom: 1px solid #ddd;
+        line-height: 1.5;
+        font-size: 16px;
+    }
+
+    .info-row:last-child {
+        border-bottom: none;
+    }
+
+    .info-row strong {
+        display: inline-block;
+        min-width: 180px;
+    }
+
+    .section {
+        margin-top: 20px;
+        padding: 18px;
+        border-radius: 12px;
+        background: white;
+        border: 1px solid #d7e9f7;
+    }
+
+    .section h3 {
+        color: #1976d2;
+        margin-top: 0;
+    }
+
+    .adaptive {
+        background: #fff8ff;
+        border: 2px solid #9c27b0;
+    }
+
+    .adaptive h3 {
+        color: #9c27b0;
+    }
+
+    .ocr {
+        background: #f8fff8;
+        border: 2px solid #4caf50;
+    }
+
+    .ocr h3 {
+        color: #388e3c;
+    }
+
+    .ai {
+        background: #f5fbff;
+        border: 2px solid #2196f3;
+    }
+
+    .medical-item {
+        padding: 9px 0;
+        border-bottom: 1px solid #eee;
+    }
+
+    .medical-item:last-child {
+        border-bottom: none;
+    }
+
+    .document-image {
+        width: 100%;
+        max-height: 600px;
+        object-fit: contain;
+        margin-top: 15px;
+        border-radius: 10px;
+        border: 1px solid #ddd;
+    }
+
+    .empty {
+        text-align: center;
+        padding: 40px;
+        color: #777;
+        font-size: 18px;
+    }
+
+    .buttons {
+        text-align: center;
+        margin-top: 30px;
+    }
+
+    button {
+        padding: 13px 25px;
+        border: none;
+        border-radius: 10px;
+        font-size: 16px;
+        cursor: pointer;
+        margin: 7px;
+    }
+
+    #backBtn {
+        background: #555;
+        color: white;
+    }
+
+    #clearBtn {
+        background: #d32f2f;
+        color: white;
+    }
+
+    #printBtn {
+        background: #4caf50;
+        color: white;
+    }
+
+    button:hover {
+        opacity: 0.9;
+    }
+</style>
+```
+
+</head>
+
+<body>
+
+<div class="doctor-container">
+
+```
+<!-- HEADER -->
+
+<div class="doctor-header">
+
+    <div class="doctor-logo">👨‍⚕️</div>
+
+    <h1>Doctor Dashboard</h1>
+
+    <p>
+        Patient cases received from MediKiosk
+    </p>
+
+</div>
+
+
+<!-- PATIENT CASES -->
+
+<div id="casesContainer"></div>
+
+
+<!-- BUTTONS -->
+
+<div class="buttons">
+
+    <button
+        id="printBtn"
+        onclick="window.print()">
+        🖨️ Print
+    </button>
+
+    <button
+        id="backBtn"
+        onclick="goBack()">
+        ⬅️ Back
+    </button>
+
+    <button
+        id="clearBtn"
+        onclick="clearCases()">
+        🗑️ Clear Received Cases
+    </button>
+
+</div>
+```
+
+</div>
+
+<script>
+
+/* =========================================
+   GET DOCTOR CASES
+========================================= */
+
+let doctorCases = [];
+
+try {
+
+    doctorCases = JSON.parse(
+        localStorage.getItem("doctorCases") || "[]"
+    );
+
+    if (!Array.isArray(doctorCases)) {
+        doctorCases = [];
+    }
+
+}
+catch (error) {
+
+    doctorCases = [];
+
+}
+
+
+/* =========================================
+   DISPLAY CASES
+========================================= */
+
+function displayCases() {
+
+    const container =
+        document.getElementById("casesContainer");
+
+    if (doctorCases.length === 0) {
+
+        container.innerHTML = `
+            <div class="empty">
+
+                📭 No patient cases received yet.
+
+                <br><br>
+
+                Complete a patient case and
+                click "Send to Doctor".
+
+            </div>
+        `;
+
+        return;
+    }
+
+
+    let html = "";
+
+
+    doctorCases.forEach(function(patient, index) {
+
+        html += `
+
+            <div class="patient-card">
+
+                <div class="patient-header">
+
+                    <h2>
+                        👤 ${escapeHTML(
+                            patient.name || "Patient"
+                        )}
+                    </h2>
+
+                    <small>
+                        Case ${index + 1}
+                    </small>
+
+                </div>
+
+
+                <div class="patient-body">
+
+                    <!-- PATIENT INFORMATION -->
+
+                    <div class="section">
+
+                        <h3>
+                            👤 Patient Information
+                        </h3>
+
+                        <div class="info-row">
+                            <strong>Name:</strong>
+                            ${escapeHTML(
+                                patient.name || "Not provided"
+                            )}
+                        </div>
+
+                        <div class="info-row">
+                            <strong>Age:</strong>
+                            ${escapeHTML(
+                                patient.age || "Not provided"
+                            )}
+                        </div>
+
+                        <div class="info-row">
+                            <strong>Gender:</strong>
+                            ${escapeHTML(
+                                patient.gender || "Not provided"
+                            )}
+                        </div>
+
+                    </div>
+
+
+                    <!-- CASE DETAILS -->
+
+                    <div class="section">
+
+                        <h3>
+                            🏥 Case Details
+                        </h3>
+
+                        <div class="info-row">
+                            <strong>Main Problem:</strong>
+                            ${escapeHTML(
+                                patient.complaint || "Not provided"
+                            )}
+                        </div>
+
+                        <div class="info-row">
+                            <strong>Duration:</strong>
+                            ${escapeHTML(
+                                patient.duration || "Not provided"
+                            )}
+                        </div>
+
+                        <div class="info-row">
+                            <strong>Symptoms:</strong>
+                            ${escapeHTML(
+                                patient.symptoms || "Not provided"
+                            )}
+                        </div>
+
+                        <div class="info-row">
+                            <strong>Medical History:</strong>
+                            ${escapeHTML(
+                                patient.history || "Not provided"
+                            )}
+                        </div>
+
+                        <div class="info-row">
+                            <strong>Allergies:</strong>
+                            ${escapeHTML(
+                                patient.allergies || "Not provided"
+                            )}
+                        </div>
+
+                        <div class="info-row">
+                            <strong>Current Medicines:</strong>
+                            ${escapeHTML(
+                                patient.medicines || "Not provided"
+                            )}
+                        </div>
+
+                    </div>
+
+
+                    <!-- ADAPTIVE QUESTIONS -->
+
+                    ${createAdaptiveSection(
+                        patient.adaptiveAnswers
+                    )}
+
+
+                    <!-- UPLOADED DOCUMENT -->
+
+                    ${createDocumentSection(
+                        patient
+                    )}
+
+
+                    <!-- OCR -->
+
+                    <div class="section ocr">
+
+                        <h3>
+                            🔎 Medical Document OCR
+                        </h3>
+
+                        <div class="medical-item">
+
+                            ${
+                                patient.ocrText
+                                    ? escapeHTML(patient.ocrText)
+                                    : "No OCR text available."
+                            }
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- AI EXTRACTION -->
+
+                    ${createAISection(
+                        patient.extractedMedicalInformation
+                    )}
+
+
+                    <!-- CASE INFORMATION -->
+
+                    <div class="section">
+
+                        <h3>
+                            🕒 Case Information
+                        </h3>
+
+                        <div class="info-row">
+
+                            <strong>Saved On:</strong>
+
+                            ${escapeHTML(
+                                patient.date || "Not available"
+                            )}
+
+                        </div>
+
+                        <div class="info-row">
+
+                            <strong>Language:</strong>
+
+                            ${getLanguageName(
+                                patient.language
+                            )}
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="section">
+
+                        ⚠️ This information was collected
+                        through MediKiosk. It is not a diagnosis.
+                        Please verify the patient's information
+                        before making clinical decisions.
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        `;
+
+    });
+
+
+    container.innerHTML = html;
+
+}
+
+
+/* =========================================
+   ADAPTIVE SECTION
+========================================= */
+
+function createAdaptiveSection(answers) {
+
+    if (
+        !answers ||
+        typeof answers !== "object" ||
+        Object.keys(answers).length === 0
+    ) {
+
+        return "";
+
+    }
+
+
+    let html = `
+
+        <div class="section adaptive">
+
+            <h3>
+                🧠 Adaptive Clinical Questions
+            </h3>
+
+    `;
+
+
+    Object.keys(answers).forEach(function(key) {
+
+        html += `
+
+            <div class="medical-item">
+
+                <strong>
+                    ${escapeHTML(
+                        formatLabel(key)
+                    )}:
+                </strong>
+
+                ${escapeHTML(
+                    answers[key]
+                )}
+
+            </div>
+
+        `;
+
+    });
+
+
+    html += `</div>`;
+
+    return html;
+
+}
+
+
+/* =========================================
+   DOCUMENT SECTION
+========================================= */
+
+function createDocumentSection(patient) {
+
+    if (
+        !patient.hasDocument
+    ) {
+
+        return `
+
+            <div class="section">
+
+                <h3>
+                    📎 Medical Document
+                </h3>
+
+                <p>
+                    No document uploaded.
+                </p>
+
+            </div>
+
+        `;
+
+    }
+
+
+    return `
+
+        <div class="section">
+
+            <h3>
+                📎 Medical Document
+            </h3>
+
+            <div class="medical-item">
+
+                <strong>File Name:</strong>
+
+                ${escapeHTML(
+                    patient.documentName ||
+                    "Uploaded document"
+                )}
+
+            </div>
+
+            ${
+                patient.documentData
+                    ? `
+                        <img
+                            src="${patient.documentData}"
+                            class="document-image"
+                            alt="Medical document"
+                        >
+                      `
+                    : `
+                        <p>
+                            Document image was not stored.
+                        </p>
+                      `
+            }
+
+        </div>
+
+    `;
+
+}
+
+
+/* =========================================
+   AI SECTION
+========================================= */
+
+function createAISection(information) {
+
+    if (
+        !information ||
+        typeof information !== "object"
+    ) {
+
+        return `
+
+            <div class="section ai">
+
+                <h3>
+                    🤖 AI Extracted Information
+                </h3>
+
+                <p>
+                    AI extraction was not performed.
+                </p>
+
+            </div>
+
+        `;
+
+    }
+
+
+    let html = `
+
+        <div class="section ai">
+
+            <h3>
+                🤖 AI Extracted Medical Information
+            </h3>
+
+    `;
+
+
+    if (information.patientName) {
+
+        html += `
+
+            <div class="medical-item">
+
+                <strong>
+                    👤 Patient Name:
+                </strong>
+
+                ${escapeHTML(
+                    information.patientName
+                )}
+
+            </div>
+
+        `;
+
+    }
+
+
+    if (information.date) {
+
+        html += `
+
+            <div class="medical-item">
+
+                <strong>
+                    📅 Report Date:
+                </strong>
+
+                ${escapeHTML(
+                    information.date
+                )}
+
+            </div>
+
+        `;
+
+    }
+
+
+    if (information.age) {
+
+        html += `
+
+            <div class="medical-item">
+
+                <strong>
+                    🎂 Age:
+                </strong>
+
+                ${escapeHTML(
+                    information.age
+                )}
+
+            </div>
+
+        `;
+
+    }
+
+
+    if (information.bloodPressure) {
+
+        html += `
+
+            <div class="medical-item">
+
+                <strong>
+                    🩸 Blood Pressure:
+                </strong>
+
+                ${escapeHTML(
+                    information.bloodPressure
+                )}
+
+            </div>
+
+        `;
+
+    }
+
+
+    if (
+        Array.isArray(
+            information.labResults
+        )
+    ) {
+
+        information.labResults.forEach(
+            function(item) {
+
+                html += `
+
+                    <div class="medical-item">
+
+                        🧪 ${escapeHTML(item)}
+
+                    </div>
+
+                `;
+
+            }
+        );
+
+    }
+
+
+    if (
+        Array.isArray(
+            information.medicines
+        )
+    ) {
+
+        information.medicines.forEach(
+            function(item) {
+
+                html += `
+
+                    <div class="medical-item">
+
+                        💊 ${escapeHTML(item)}
+
+                    </div>
+
+                `;
+
+            }
+        );
+
+    }
+
+
+    if (
+        Array.isArray(
+            information.comments
+        )
+    ) {
+
+        information.comments.forEach(
+            function(item) {
+
+                html += `
+
+                    <div class="medical-item">
+
+                        📋 ${escapeHTML(item)}
+
+                    </div>
+
+                `;
+
+            }
+        );
+
+    }
+
+
+    html += `</div>`;
+
+    return html;
+
+}
+
+
+/* =========================================
+   FORMAT LABEL
+========================================= */
+
+function formatLabel(key) {
+
+    return String(key)
+
+        .replace(
+            /_/g,
+            " "
+        )
+
+        .replace(
+            /\b\w/g,
+            function(letter) {
+
+                return letter.toUpperCase();
+
+            }
+        );
+
+}
+
+
+/* =========================================
+   LANGUAGE
+========================================= */
+
+function getLanguageName(language) {
+
+    const languages = {
+
+        en: "English",
+
+        kn: "Kannada",
+
+        hi: "Hindi"
+
+    };
+
+    return escapeHTML(
+        languages[language] ||
+        language ||
+        "English"
+    );
+
+}
+
+
+/* =========================================
+   HTML ESCAPE
+========================================= */
+
+function escapeHTML(value) {
+
+    return String(value)
+
+        .replace(
+            /&/g,
+            "&amp;"
+        )
+
+        .replace(
+            /</g,
+            "&lt;"
+        )
+
+        .replace(
+            />/g,
+            "&gt;"
+        )
+
+        .replace(
+            /"/g,
+            "&quot;"
+        )
+
+        .replace(
+            /'/g,
+            "&#039;"
+        );
+
+}
+
+
+/* =========================================
+   BACK
+========================================= */
+
+function goBack() {
+
+    window.history.back();
+
+}
+
+
+/* =========================================
+   CLEAR CASES
+========================================= */
+
+function clearCases() {
+
+    if (
+        doctorCases.length === 0
+    ) {
+
+        alert(
+            "There are no received cases to clear."
+        );
+
+        return;
+
+    }
+
+
+    const confirmClear =
+        confirm(
+            "Are you sure you want to clear all received patient cases?"
+        );
+
+
+    if (!confirmClear) {
+        return;
+    }
+
+
+    localStorage.removeItem(
+        "doctorCases"
+    );
+
+
+    doctorCases = [];
+
+
+    displayCases();
+
+
+    alert(
+        "✅ All received cases have been cleared."
+    );
+
+}
+
+
+/* =========================================
+   DISPLAY
+========================================= */
+
+displayCases();
+
+</script>
+
+</body>
+
+</html>

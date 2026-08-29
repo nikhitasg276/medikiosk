@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>MediKiosk - Login</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <div class="home-container">
+
+        <div class="logo">🔐</div>
+
+        <h1 id="title">MediKiosk Login</h1>
+
+        <p id="instruction">Enter your details to continue</p>
+
+        <form onsubmit="loginUser(event)">
+
+            <input
+                type="text"
+                id="username"
+                placeholder="Username"
+                required
+            >
+
+            <br><br>
+
+            <input
+                type="password"
+                id="password"
+                placeholder="Password"
+                required
+            >
+
+            <br><br>
+
+            <button type="submit" id="loginBtn">
+                Login
+            </button>
+
+        </form>
+
+    </div>
+
+
+    <script>
+
+const params = new URLSearchParams(window.location.search);
+
+const language = params.get("lang") || "en";
+const role = params.get("role") || "patient";
+
+
+// ===============================
+// LANGUAGE
+// ===============================
+
+if (language === "kn") {
+
+    document.getElementById("title").innerText =
+        "MediKiosk ಲಾಗಿನ್";
+
+    document.getElementById("instruction").innerText =
+        "ಮುಂದುವರಿಯಲು ನಿಮ್ಮ ವಿವರಗಳನ್ನು ನಮೂದಿಸಿ";
+
+    document.getElementById("username").placeholder =
+        "ಬಳಕೆದಾರ ಹೆಸರು";
+
+    document.getElementById("password").placeholder =
+        "ಪಾಸ್‌ವರ್ಡ್";
+
+    document.getElementById("loginBtn").innerText =
+        "ಲಾಗಿನ್";
+
+}
+
+else if (language === "hi") {
+
+    document.getElementById("title").innerText =
+        "MediKiosk लॉगिन";
+
+    document.getElementById("instruction").innerText =
+        "जारी रखने के लिए अपना विवरण दर्ज करें";
+
+    document.getElementById("username").placeholder =
+        "उपयोगकर्ता नाम";
+
+    document.getElementById("password").placeholder =
+        "पासवर्ड";
+
+    document.getElementById("loginBtn").innerText =
+        "लॉगिन";
+
+}
+
+else {
+
+    document.getElementById("title").innerText =
+        "MediKiosk Login";
+
+    document.getElementById("instruction").innerText =
+        "Enter your details to continue";
+
+    document.getElementById("username").placeholder =
+        "Username";
+
+    document.getElementById("password").placeholder =
+        "Password";
+
+    document.getElementById("loginBtn").innerText =
+        "Login";
+}
+
+
+// ===============================
+// LOGIN
+// ===============================
+
+function loginUser(event) {
+
+    event.preventDefault();
+
+    const username =
+        document.getElementById("username")
+        .value
+        .trim();
+
+    const password =
+        document.getElementById("password")
+        .value
+        .trim();
+
+
+    if (username === "" || password === "") {
+
+        alert("Please enter username and password.");
+        return;
+
+    }
+
+
+    // =================================
+    // IMPORTANT: SAVE CURRENT USER
+    // =================================
+
+    localStorage.setItem(
+        "loggedInUser",
+        username
+    );
+
+    localStorage.setItem(
+        "loggedInRole",
+        role
+    );
+
+    localStorage.setItem(
+        "loggedInLanguage",
+        language
+    );
+
+
+    // =================================
+    // PATIENT LOGIN
+    // =================================
+
+    if (role === "patient") {
+
+        window.location.href =
+            "dashboard.html?role=patient&lang=" +
+            encodeURIComponent(language);
+
+        return;
+    }
+
+
+    // =================================
+    // DOCTOR LOGIN
+    // =================================
+
+    if (role === "doctor") {
+
+        window.location.href =
+            "doctor-dashboard.html?role=doctor&lang=" +
+            encodeURIComponent(language);
+
+        return;
+    }
+
+
+    // =================================
+    // DEFAULT
+    // =================================
+
+    window.location.href =
+        "dashboard.html?role=patient&lang=" +
+        encodeURIComponent(language);
+}
+
+</script>
+
+</body>
+
+</html>

@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>MediKiosk - Select Role</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <div class="home-container">
+
+        <div class="logo">👤</div>
+
+        <h1 id="title">Welcome to MediKiosk</h1>
+
+        <p id="instruction">Please select who you are</p>
+
+        <button id="patientBtn" onclick="goToLogin('patient')">
+            👤 Patient
+        </button>
+
+        <br><br>
+
+        <button id="doctorBtn" onclick="goToLogin('doctor')">
+            👨‍⚕️ Doctor / Medical Staff
+        </button>
+
+    </div>
+
+
+    <script>
+
+        // Get the selected language from the previous page
+        const params = new URLSearchParams(window.location.search);
+        const language = params.get("lang");
+
+
+        // Kannada
+        if (language === "kn") {
+
+            document.getElementById("title").innerText =
+                "MediKiosk ಗೆ ಸ್ವಾಗತ";
+
+            document.getElementById("instruction").innerText =
+                "ದಯವಿಟ್ಟು ನೀವು ಯಾರು ಎಂದು ಆಯ್ಕೆಮಾಡಿ";
+
+            document.getElementById("patientBtn").innerText =
+                "👤 ರೋಗಿ";
+
+            document.getElementById("doctorBtn").innerText =
+                "👨‍⚕️ ವೈದ್ಯರು / ವೈದ್ಯಕೀಯ ಸಿಬ್ಬಂದಿ";
+        }
+
+
+        // Hindi
+        else if (language === "hi") {
+
+            document.getElementById("title").innerText =
+                "MediKiosk में आपका स्वागत है";
+
+            document.getElementById("instruction").innerText =
+                "कृपया चुनें कि आप कौन हैं";
+
+            document.getElementById("patientBtn").innerText =
+                "👤 मरीज";
+
+            document.getElementById("doctorBtn").innerText =
+                "👨‍⚕️ डॉक्टर / चिकित्सा कर्मचारी";
+        }
+
+
+        // English
+        else {
+
+            document.getElementById("title").innerText =
+                "Welcome to MediKiosk";
+
+            document.getElementById("instruction").innerText =
+                "Please select who you are";
+
+            document.getElementById("patientBtn").innerText =
+                "👤 Patient";
+
+            document.getElementById("doctorBtn").innerText =
+                "👨‍⚕️ Doctor / Medical Staff";
+        }
+
+
+        // Go to login page
+        function goToLogin(role) {
+
+            window.location.href =
+                "login.html?role=" + role + "&lang=" + language;
+        }
+
+    </script>
+
+</body>
+
+</html>
