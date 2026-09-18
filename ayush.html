@@ -1,0 +1,1665 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>MediKiosk - AYUSH History</title>
+
+    <link rel="stylesheet"
+          href="style.css">
+
+    <style>
+
+        .ayush-container {
+            width: 90%;
+            max-width: 800px;
+            margin: 20px auto;
+        }
+
+        .card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.12);
+            margin-top: 20px;
+        }
+
+        .option-btn {
+            display: block;
+            width: 90%;
+            margin: 12px auto;
+            padding: 15px;
+            font-size: 17px;
+            border-radius: 10px;
+            border: 1px solid #ccc;
+            background: #f8f8f8;
+            color: #222;
+            cursor: pointer;
+        }
+
+        .option-btn:hover {
+            transform: scale(1.02);
+            background: #eeeeee;
+        }
+
+        #question {
+            font-size: 21px;
+        }
+
+        #answer {
+            width: 90%;
+            padding: 14px;
+            font-size: 17px;
+            border-radius: 10px;
+            border: 1px solid #ccc;
+            color: #222;
+            background: white;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .summary {
+            text-align: left;
+            background: #f5f5f5;
+            padding: 20px;
+            border-radius: 12px;
+            margin-top: 20px;
+        }
+
+        .status {
+            font-weight: bold;
+            margin: 15px;
+        }
+
+        .selected-system {
+            background: #f1f8e9;
+            padding: 12px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+<div class="home-container">
+
+    <div class="logo">🌿</div>
+
+    <h1 id="title">
+        AYUSH History
+    </h1>
+
+    <p id="subtitle">
+        Let's record your AYUSH-related health history
+    </p>
+
+
+    <div class="ayush-container">
+
+
+        <!-- =========================================
+             STEP 1 : AYUSH SYSTEM
+        ========================================== -->
+
+        <div id="systemCard"
+             class="card">
+
+            <h2 id="systemQuestion">
+                Which AYUSH system are you interested in or using?
+            </h2>
+
+
+            <button
+                class="option-btn"
+                id="ayurvedaBtn"
+                onclick="selectSystem('Ayurveda')">
+
+                🌿 Ayurveda
+
+            </button>
+
+
+            <button
+                class="option-btn"
+                id="yogaBtn"
+                onclick="selectSystem('Yoga & Naturopathy')">
+
+                🧘 Yoga & Naturopathy
+
+            </button>
+
+
+            <button
+                class="option-btn"
+                id="unaniBtn"
+                onclick="selectSystem('Unani')">
+
+                🌙 Unani
+
+            </button>
+
+
+            <button
+                class="option-btn"
+                id="siddhaBtn"
+                onclick="selectSystem('Siddha')">
+
+                🌱 Siddha
+
+            </button>
+
+
+            <button
+                class="option-btn"
+                id="homeopathyBtn"
+                onclick="selectSystem('Homoeopathy')">
+
+                💊 Homoeopathy
+
+            </button>
+
+
+            <button
+                class="option-btn"
+                id="notSureBtn"
+                onclick="selectSystem('Not Sure')">
+
+                ❓ I'm not sure
+
+            </button>
+
+        </div>
+
+
+
+        <!-- =========================================
+             STEP 2 : QUESTIONS
+        ========================================== -->
+
+        <div id="questionCard"
+             class="card hidden">
+
+
+            <div class="selected-system">
+
+                <h2 id="selectedSystem"></h2>
+
+            </div>
+
+
+            <h2 id="question"></h2>
+
+
+            <input
+                type="text"
+                id="answer"
+                placeholder="Type your answer..."
+            >
+
+
+            <br><br>
+
+
+            <button
+                onclick="startVoice()"
+                id="voiceBtn">
+
+                🎤 Speak Answer
+
+            </button>
+
+
+            <button
+                onclick="speakQuestion()"
+                id="speakBtn">
+
+                🔊 Hear Question
+
+            </button>
+
+
+            <button
+                onclick="nextQuestion()"
+                id="nextBtn">
+
+                ➡️ Next
+
+            </button>
+
+
+            <div
+                id="status"
+                class="status">
+            </div>
+
+
+            <p id="progress"></p>
+
+        </div>
+
+
+
+        <!-- =========================================
+             FINAL SUMMARY
+        ========================================== -->
+
+        <div id="summaryBox"></div>
+
+
+        <br>
+
+
+        <button
+            onclick="goBack()"
+            id="backBtn">
+
+            ⬅️ Back to Dashboard
+
+        </button>
+
+
+    </div>
+
+</div>
+
+
+
+<script>
+
+
+/* =====================================================
+   LANGUAGE
+===================================================== */
+
+const params =
+    new URLSearchParams(
+        window.location.search
+    );
+
+
+const language =
+    params.get("lang") || "en";
+
+
+/* =====================================================
+   USER
+===================================================== */
+
+const loggedInUser =
+    localStorage.getItem(
+        "loggedInUser"
+    );
+
+
+if (!loggedInUser) {
+
+    alert("Please login first.");
+
+    window.location.href =
+        "login.html?role=patient&lang=" +
+        encodeURIComponent(language);
+
+}
+
+
+
+/* =====================================================
+   TEXT
+===================================================== */
+
+const text = {
+
+    /* ================= ENGLISH ================= */
+
+    en: {
+
+        title:
+            "AYUSH History",
+
+        subtitle:
+            "Let's record your AYUSH-related health history",
+
+        system:
+            "Which AYUSH system are you interested in or using?",
+
+        ayurveda:
+            "🌿 Ayurveda",
+
+        yoga:
+            "🧘 Yoga & Naturopathy",
+
+        unani:
+            "🌙 Unani",
+
+        siddha:
+            "🌱 Siddha",
+
+        homeopathy:
+            "💊 Homoeopathy",
+
+        notSure:
+            "❓ I'm not sure",
+
+        type:
+            "Type your answer...",
+
+        voice:
+            "🎤 Speak Answer",
+
+        hear:
+            "🔊 Hear Question",
+
+        next:
+            "➡️ Next",
+
+        back:
+            "⬅️ Back to Dashboard",
+
+        listening:
+            "🎤 Listening...",
+
+        captured:
+            "✅ Answer captured",
+
+        empty:
+            "Please provide an answer.",
+
+        saved:
+            "AYUSH history saved successfully!",
+
+        completed:
+            "AYUSH History Completed",
+
+        systemLabel:
+            "System"
+
+    },
+
+
+    /* ================= KANNADA ================= */
+
+    kn: {
+
+        title:
+            "ಆಯುಷ್ ಇತಿಹಾಸ",
+
+        subtitle:
+            "ನಿಮ್ಮ ಆಯುಷ್ ಸಂಬಂಧಿತ ಆರೋಗ್ಯ ಇತಿಹಾಸವನ್ನು ದಾಖಲಿಸೋಣ",
+
+        system:
+            "ನೀವು ಯಾವ ಆಯುಷ್ ಪದ್ಧತಿಯನ್ನು ಬಳಸುತ್ತಿದ್ದೀರಿ ಅಥವಾ ಆಸಕ್ತಿ ಹೊಂದಿದ್ದೀರಿ?",
+
+        ayurveda:
+            "🌿 ಆಯುರ್ವೇದ",
+
+        yoga:
+            "🧘 ಯೋಗ ಮತ್ತು ಪ್ರಕೃತಿ ಚಿಕಿತ್ಸೆ",
+
+        unani:
+            "🌙 ಯುನಾನಿ",
+
+        siddha:
+            "🌱 ಸಿದ್ಧ",
+
+        homeopathy:
+            "💊 ಹೋಮಿಯೋಪತಿ",
+
+        notSure:
+            "❓ ಖಚಿತವಿಲ್ಲ",
+
+        type:
+            "ನಿಮ್ಮ ಉತ್ತರವನ್ನು ಟೈಪ್ ಮಾಡಿ...",
+
+        voice:
+            "🎤 ಉತ್ತರವನ್ನು ಮಾತನಾಡಿ",
+
+        hear:
+            "🔊 ಪ್ರಶ್ನೆಯನ್ನು ಕೇಳಿ",
+
+        next:
+            "➡️ ಮುಂದಕ್ಕೆ",
+
+        back:
+            "⬅️ ಡ್ಯಾಶ್‌ಬೋರ್ಡ್‌ಗೆ ಹಿಂತಿರುಗಿ",
+
+        listening:
+            "🎤 ಕೇಳಲಾಗುತ್ತಿದೆ...",
+
+        captured:
+            "✅ ಉತ್ತರ ಪಡೆಯಲಾಗಿದೆ",
+
+        empty:
+            "ದಯವಿಟ್ಟು ಉತ್ತರ ನೀಡಿ.",
+
+        saved:
+            "ಆಯುಷ್ ಇತಿಹಾಸ ಯಶಸ್ವಿಯಾಗಿ ಉಳಿಸಲಾಗಿದೆ!",
+
+        completed:
+            "ಆಯುಷ್ ಇತಿಹಾಸ ಪೂರ್ಣಗೊಂಡಿದೆ",
+
+        systemLabel:
+            "ಪದ್ಧತಿ"
+
+    },
+
+
+    /* ================= HINDI ================= */
+
+    hi: {
+
+        title:
+            "आयुष इतिहास",
+
+        subtitle:
+            "आपका आयुष स्वास्थ्य इतिहास दर्ज करें",
+
+        system:
+            "आप किस आयुष पद्धति का उपयोग कर रहे हैं या उसमें रुचि रखते हैं?",
+
+        ayurveda:
+            "🌿 आयुर्वेद",
+
+        yoga:
+            "🧘 योग और प्राकृतिक चिकित्सा",
+
+        unani:
+            "🌙 यूनानी",
+
+        siddha:
+            "🌱 सिद्ध",
+
+        homeopathy:
+            "💊 होम्योपैथी",
+
+        notSure:
+            "❓ निश्चित नहीं",
+
+        type:
+            "अपना उत्तर लिखें...",
+
+        voice:
+            "🎤 उत्तर बोलें",
+
+        hear:
+            "🔊 प्रश्न सुनें",
+
+        next:
+            "➡️ अगला",
+
+        back:
+            "⬅️ डैशबोर्ड पर वापस जाएं",
+
+        listening:
+            "🎤 सुन रहा है...",
+
+        captured:
+            "✅ उत्तर प्राप्त हुआ",
+
+        empty:
+            "कृपया उत्तर दें।",
+
+        saved:
+            "आयुष इतिहास सफलतापूर्वक सहेजा गया!",
+
+        completed:
+            "आयुष इतिहास पूरा हुआ",
+
+        systemLabel:
+            "पद्धति"
+
+    }
+
+};
+
+
+const t =
+    text[language] || text.en;
+
+
+
+/* =====================================================
+   QUESTIONS - ENGLISH
+===================================================== */
+
+const questions = {
+
+    en: {
+
+        "Ayurveda": [
+
+            "What is your main health problem?",
+
+            "Since when have you had this problem?",
+
+            "How is your appetite?",
+
+            "How is your digestion?",
+
+            "How is your sleep?",
+
+            "Do you usually feel more comfortable in hot or cold weather?",
+
+            "How active are you during the day?",
+
+            "Have you taken Ayurvedic treatment before?",
+
+            "Are you currently taking any medicines or herbal products?",
+
+            "Do you have any known allergies?",
+
+            "Is there anything else you want to tell the doctor?"
+
+        ],
+
+
+        "Yoga & Naturopathy": [
+
+            "What is your main health problem?",
+
+            "Since when have you had this problem?",
+
+            "How physically active are you?",
+
+            "Do you practice yoga?",
+
+            "Do you practice meditation or breathing exercises?",
+
+            "How is your sleep?",
+
+            "How is your diet?",
+
+            "How would you describe your stress level?",
+
+            "Have you taken naturopathy treatment before?",
+
+            "Is there anything else you want to tell the doctor?"
+
+        ],
+
+
+        "Unani": [
+
+            "What is your main health problem?",
+
+            "Since when have you had this problem?",
+
+            "What symptoms are you experiencing?",
+
+            "How is your appetite and digestion?",
+
+            "How is your sleep?",
+
+            "Do you have any previous Unani treatment?",
+
+            "Are you currently taking any medicines?",
+
+            "Do you have any allergies?",
+
+            "Is there anything else you want to tell the doctor?"
+
+        ],
+
+
+        "Siddha": [
+
+            "What is your main health problem?",
+
+            "Since when have you had this problem?",
+
+            "What symptoms are you experiencing?",
+
+            "How is your appetite?",
+
+            "How is your digestion?",
+
+            "How is your sleep?",
+
+            "Have you taken Siddha treatment before?",
+
+            "Are you taking any medicines or herbal products?",
+
+            "Do you have any allergies?",
+
+            "Is there anything else you want to tell the doctor?"
+
+        ],
+
+
+        "Homoeopathy": [
+
+            "What is your main health problem?",
+
+            "Since when have you had this problem?",
+
+            "What symptoms are you experiencing?",
+
+            "What makes your symptoms better or worse?",
+
+            "How is your sleep?",
+
+            "How is your appetite?",
+
+            "Have you taken homoeopathic treatment before?",
+
+            "Are you taking any medicines currently?",
+
+            "Do you have any allergies?",
+
+            "Is there anything else you want to tell the doctor?"
+
+        ],
+
+
+        "Not Sure": [
+
+            "What is your main health problem?",
+
+            "Since when have you had this problem?",
+
+            "What symptoms are you experiencing?",
+
+            "How is your sleep?",
+
+            "How is your appetite and digestion?",
+
+            "Are you currently taking any medicines?",
+
+            "Have you tried any traditional or AYUSH treatment before?",
+
+            "Do you have any known allergies?",
+
+            "Is there anything else you want to tell the doctor?"
+
+        ]
+
+    }
+
+};
+
+
+
+/* =====================================================
+   KANNADA QUESTIONS
+===================================================== */
+
+questions.kn = {
+
+    "Ayurveda": [
+
+        "ನಿಮ್ಮ ಮುಖ್ಯ ಆರೋಗ್ಯ ಸಮಸ್ಯೆ ಏನು?",
+
+        "ಈ ಸಮಸ್ಯೆ ಎಷ್ಟು ಸಮಯದಿಂದ ಇದೆ?",
+
+        "ನಿಮ್ಮ ಹಸಿವು ಹೇಗಿದೆ?",
+
+        "ನಿಮ್ಮ ಜೀರ್ಣಕ್ರಿಯೆ ಹೇಗಿದೆ?",
+
+        "ನಿಮ್ಮ ನಿದ್ರೆ ಹೇಗಿದೆ?",
+
+        "ನಿಮಗೆ ಸಾಮಾನ್ಯವಾಗಿ ಬಿಸಿ ಅಥವಾ ಚಳಿ ವಾತಾವರಣದಲ್ಲಿ ಯಾವುದು ಹೆಚ್ಚು ಆರಾಮದಾಯಕ?",
+
+        "ದಿನದಲ್ಲಿ ನೀವು ಎಷ್ಟು ಸಕ್ರಿಯರಾಗಿರುತ್ತೀರಿ?",
+
+        "ನೀವು ಹಿಂದೆ ಆಯುರ್ವೇದ ಚಿಕಿತ್ಸೆ ಪಡೆದಿದ್ದೀರಾ?",
+
+        "ನೀವು ಈಗ ಯಾವುದೇ ಔಷಧಿ ಅಥವಾ ಗಿಡಮೂಲಿಕೆ ಉತ್ಪನ್ನಗಳನ್ನು ತೆಗೆದುಕೊಳ್ಳುತ್ತಿದ್ದೀರಾ?",
+
+        "ನಿಮಗೆ ಯಾವುದೇ ಅಲರ್ಜಿ ಇದೆಯೇ?",
+
+        "ವೈದ್ಯರಿಗೆ ಇನ್ನೇನಾದರೂ ತಿಳಿಸಲು ಬಯಸುತ್ತೀರಾ?"
+
+    ],
+
+
+    "Yoga & Naturopathy": [
+
+        "ನಿಮ್ಮ ಮುಖ್ಯ ಆರೋಗ್ಯ ಸಮಸ್ಯೆ ಏನು?",
+
+        "ಈ ಸಮಸ್ಯೆ ಎಷ್ಟು ಸಮಯದಿಂದ ಇದೆ?",
+
+        "ನೀವು ಎಷ್ಟು ದೈಹಿಕ ಚಟುವಟಿಕೆ ಮಾಡುತ್ತೀರಿ?",
+
+        "ನೀವು ಯೋಗ ಮಾಡುತ್ತೀರಾ?",
+
+        "ನೀವು ಧ್ಯಾನ ಅಥವಾ ಉಸಿರಾಟದ ವ್ಯಾಯಾಮ ಮಾಡುತ್ತೀರಾ?",
+
+        "ನಿಮ್ಮ ನಿದ್ರೆ ಹೇಗಿದೆ?",
+
+        "ನಿಮ್ಮ ಆಹಾರ ಪದ್ಧತಿ ಹೇಗಿದೆ?",
+
+        "ನಿಮ್ಮ ಒತ್ತಡದ ಮಟ್ಟ ಹೇಗಿದೆ?",
+
+        "ನೀವು ಹಿಂದೆ ನ್ಯಾಚುರೋಪತಿ ಚಿಕಿತ್ಸೆ ಪಡೆದಿದ್ದೀರಾ?",
+
+        "ವೈದ್ಯರಿಗೆ ಇನ್ನೇನಾದರೂ ತಿಳಿಸಲು ಬಯಸುತ್ತೀರಾ?"
+
+    ],
+
+
+    "Unani": [
+
+        "ನಿಮ್ಮ ಮುಖ್ಯ ಆರೋಗ್ಯ ಸಮಸ್ಯೆ ಏನು?",
+
+        "ಈ ಸಮಸ್ಯೆ ಎಷ್ಟು ಸಮಯದಿಂದ ಇದೆ?",
+
+        "ನಿಮಗೆ ಯಾವ ಲಕ್ಷಣಗಳು ಕಾಣಿಸುತ್ತಿವೆ?",
+
+        "ನಿಮ್ಮ ಹಸಿವು ಮತ್ತು ಜೀರ್ಣಕ್ರಿಯೆ ಹೇಗಿದೆ?",
+
+        "ನಿಮ್ಮ ನಿದ್ರೆ ಹೇಗಿದೆ?",
+
+        "ನೀವು ಹಿಂದೆ ಯುನಾನಿ ಚಿಕಿತ್ಸೆ ಪಡೆದಿದ್ದೀರಾ?",
+
+        "ನೀವು ಈಗ ಯಾವುದೇ ಔಷಧಿ ತೆಗೆದುಕೊಳ್ಳುತ್ತಿದ್ದೀರಾ?",
+
+        "ನಿಮಗೆ ಯಾವುದೇ ಅಲರ್ಜಿ ಇದೆಯೇ?",
+
+        "ವೈದ್ಯರಿಗೆ ಇನ್ನೇನಾದರೂ ತಿಳಿಸಲು ಬಯಸುತ್ತೀರಾ?"
+
+    ],
+
+
+    "Siddha": [
+
+        "ನಿಮ್ಮ ಮುಖ್ಯ ಆರೋಗ್ಯ ಸಮಸ್ಯೆ ಏನು?",
+
+        "ಈ ಸಮಸ್ಯೆ ಎಷ್ಟು ಸಮಯದಿಂದ ಇದೆ?",
+
+        "ನಿಮಗೆ ಯಾವ ಲಕ್ಷಣಗಳು ಕಾಣಿಸುತ್ತಿವೆ?",
+
+        "ನಿಮ್ಮ ಹಸಿವು ಹೇಗಿದೆ?",
+
+        "ನಿಮ್ಮ ಜೀರ್ಣಕ್ರಿಯೆ ಹೇಗಿದೆ?",
+
+        "ನಿಮ್ಮ ನಿದ್ರೆ ಹೇಗಿದೆ?",
+
+        "ನೀವು ಹಿಂದೆ ಸಿದ್ಧ ಚಿಕಿತ್ಸೆ ಪಡೆದಿದ್ದೀರಾ?",
+
+        "ನೀವು ಯಾವುದೇ ಔಷಧಿ ಅಥವಾ ಗಿಡಮೂಲಿಕೆ ಉತ್ಪನ್ನಗಳನ್ನು ತೆಗೆದುಕೊಳ್ಳುತ್ತಿದ್ದೀರಾ?",
+
+        "ನಿಮಗೆ ಯಾವುದೇ ಅಲರ್ಜಿ ಇದೆಯೇ?",
+
+        "ವೈದ್ಯರಿಗೆ ಇನ್ನೇನಾದರೂ ತಿಳಿಸಲು ಬಯಸುತ್ತೀರಾ?"
+
+    ],
+
+
+    "Homoeopathy": [
+
+        "ನಿಮ್ಮ ಮುಖ್ಯ ಆರೋಗ್ಯ ಸಮಸ್ಯೆ ಏನು?",
+
+        "ಈ ಸಮಸ್ಯೆ ಎಷ್ಟು ಸಮಯದಿಂದ ಇದೆ?",
+
+        "ನಿಮಗೆ ಯಾವ ಲಕ್ಷಣಗಳು ಕಾಣಿಸುತ್ತಿವೆ?",
+
+        "ಯಾವುದರಿಂದ ನಿಮ್ಮ ಲಕ್ಷಣಗಳು ಕಡಿಮೆಯಾಗುತ್ತವೆ ಅಥವಾ ಹೆಚ್ಚಾಗುತ್ತವೆ?",
+
+        "ನಿಮ್ಮ ನಿದ್ರೆ ಹೇಗಿದೆ?",
+
+        "ನಿಮ್ಮ ಹಸಿವು ಹೇಗಿದೆ?",
+
+        "ನೀವು ಹಿಂದೆ ಹೋಮಿಯೋಪತಿ ಚಿಕಿತ್ಸೆ ಪಡೆದಿದ್ದೀರಾ?",
+
+        "ನೀವು ಈಗ ಯಾವುದೇ ಔಷಧಿ ತೆಗೆದುಕೊಳ್ಳುತ್ತಿದ್ದೀರಾ?",
+
+        "ನಿಮಗೆ ಯಾವುದೇ ಅಲರ್ಜಿ ಇದೆಯೇ?",
+
+        "ವೈದ್ಯರಿಗೆ ಇನ್ನೇನಾದರೂ ತಿಳಿಸಲು ಬಯಸುತ್ತೀರಾ?"
+
+    ],
+
+
+    "Not Sure": [
+
+        "ನಿಮ್ಮ ಮುಖ್ಯ ಆರೋಗ್ಯ ಸಮಸ್ಯೆ ಏನು?",
+
+        "ಈ ಸಮಸ್ಯೆ ಎಷ್ಟು ಸಮಯದಿಂದ ಇದೆ?",
+
+        "ನಿಮಗೆ ಯಾವ ಲಕ್ಷಣಗಳು ಕಾಣಿಸುತ್ತಿವೆ?",
+
+        "ನಿಮ್ಮ ನಿದ್ರೆ ಹೇಗಿದೆ?",
+
+        "ನಿಮ್ಮ ಹಸಿವು ಮತ್ತು ಜೀರ್ಣಕ್ರಿಯೆ ಹೇಗಿದೆ?",
+
+        "ನೀವು ಈಗ ಯಾವುದೇ ಔಷಧಿ ತೆಗೆದುಕೊಳ್ಳುತ್ತಿದ್ದೀರಾ?",
+
+        "ನೀವು ಹಿಂದೆ ಯಾವುದೇ ಸಾಂಪ್ರದಾಯಿಕ ಅಥವಾ ಆಯುಷ್ ಚಿಕಿತ್ಸೆ ಪ್ರಯತ್ನಿಸಿದ್ದೀರಾ?",
+
+        "ನಿಮಗೆ ಯಾವುದೇ ಅಲರ್ಜಿ ಇದೆಯೇ?",
+
+        "ವೈದ್ಯರಿಗೆ ಇನ್ನೇನಾದರೂ ತಿಳಿಸಲು ಬಯಸುತ್ತೀರಾ?"
+
+    ]
+
+};
+
+
+
+/* =====================================================
+   HINDI QUESTIONS
+===================================================== */
+
+questions.hi = {
+
+    "Ayurveda": [
+
+        "आपकी मुख्य स्वास्थ्य समस्या क्या है?",
+
+        "यह समस्या आपको कब से है?",
+
+        "आपकी भूख कैसी है?",
+
+        "आपका पाचन कैसा है?",
+
+        "आपकी नींद कैसी है?",
+
+        "आपको गर्म या ठंडे मौसम में कौन सा अधिक आरामदायक लगता है?",
+
+        "आप दिन में कितने सक्रिय रहते हैं?",
+
+        "क्या आपने पहले आयुर्वेदिक उपचार लिया है?",
+
+        "क्या आप अभी कोई दवा या हर्बल उत्पाद ले रहे हैं?",
+
+        "क्या आपको किसी चीज से एलर्जी है?",
+
+        "क्या आप डॉक्टर को कुछ और बताना चाहते हैं?"
+
+    ],
+
+
+    "Yoga & Naturopathy": [
+
+        "आपकी मुख्य स्वास्थ्य समस्या क्या है?",
+
+        "यह समस्या आपको कब से है?",
+
+        "आप कितनी शारीरिक गतिविधि करते हैं?",
+
+        "क्या आप योग करते हैं?",
+
+        "क्या आप ध्यान या सांस के व्यायाम करते हैं?",
+
+        "आपकी नींद कैसी है?",
+
+        "आपका आहार कैसा है?",
+
+        "आपका तनाव स्तर कैसा है?",
+
+        "क्या आपने पहले प्राकृतिक चिकित्सा ली है?",
+
+        "क्या आप डॉक्टर को कुछ और बताना चाहते हैं?"
+
+    ],
+
+
+    "Unani": [
+
+        "आपकी मुख्य स्वास्थ्य समस्या क्या है?",
+
+        "यह समस्या आपको कब से है?",
+
+        "आपको कौन-कौन से लक्षण हो रहे हैं?",
+
+        "आपकी भूख और पाचन कैसा है?",
+
+        "आपकी नींद कैसी है?",
+
+        "क्या आपने पहले यूनानी उपचार लिया है?",
+
+        "क्या आप अभी कोई दवा ले रहे हैं?",
+
+        "क्या आपको किसी चीज से एलर्जी है?",
+
+        "क्या आप डॉक्टर को कुछ और बताना चाहते हैं?"
+
+    ],
+
+
+    "Siddha": [
+
+        "आपकी मुख्य स्वास्थ्य समस्या क्या है?",
+
+        "यह समस्या आपको कब से है?",
+
+        "आपको कौन-कौन से लक्षण हो रहे हैं?",
+
+        "आपकी भूख कैसी है?",
+
+        "आपका पाचन कैसा है?",
+
+        "आपकी नींद कैसी है?",
+
+        "क्या आपने पहले सिद्ध उपचार लिया है?",
+
+        "क्या आप कोई दवा या हर्बल उत्पाद ले रहे हैं?",
+
+        "क्या आपको किसी चीज से एलर्जी है?",
+
+        "क्या आप डॉक्टर को कुछ और बताना चाहते हैं?"
+
+    ],
+
+
+    "Homoeopathy": [
+
+        "आपकी मुख्य स्वास्थ्य समस्या क्या है?",
+
+        "यह समस्या आपको कब से है?",
+
+        "आपको कौन-कौन से लक्षण हो रहे हैं?",
+
+        "किस चीज से आपके लक्षण बेहतर या खराब होते हैं?",
+
+        "आपकी नींद कैसी है?",
+
+        "आपकी भूख कैसी है?",
+
+        "क्या आपने पहले होम्योपैथिक उपचार लिया है?",
+
+        "क्या आप अभी कोई दवा ले रहे हैं?",
+
+        "क्या आपको किसी चीज से एलर्जी है?",
+
+        "क्या आप डॉक्टर को कुछ और बताना चाहते हैं?"
+
+    ],
+
+
+    "Not Sure": [
+
+        "आपकी मुख्य स्वास्थ्य समस्या क्या है?",
+
+        "यह समस्या आपको कब से है?",
+
+        "आपको कौन-कौन से लक्षण हो रहे हैं?",
+
+        "आपकी नींद कैसी है?",
+
+        "आपकी भूख और पाचन कैसा है?",
+
+        "क्या आप अभी कोई दवा ले रहे हैं?",
+
+        "क्या आपने पहले कोई पारंपरिक या आयुष उपचार आजमाया है?",
+
+        "क्या आपको किसी चीज से एलर्जी है?",
+
+        "क्या आप डॉक्टर को कुछ और बताना चाहते हैं?"
+
+    ]
+
+};
+
+
+
+/* =====================================================
+   VARIABLES
+===================================================== */
+
+let selectedSystem = "";
+
+let currentQuestion = 0;
+
+let answers = [];
+
+
+
+/* =====================================================
+   SYSTEM DISPLAY NAMES
+===================================================== */
+
+function getSystemDisplayName(system) {
+
+    const names = {
+
+        en: {
+
+            "Ayurveda": "🌿 Ayurveda",
+
+            "Yoga & Naturopathy":
+                "🧘 Yoga & Naturopathy",
+
+            "Unani":
+                "🌙 Unani",
+
+            "Siddha":
+                "🌱 Siddha",
+
+            "Homoeopathy":
+                "💊 Homoeopathy",
+
+            "Not Sure":
+                "❓ I'm not sure"
+
+        },
+
+        kn: {
+
+            "Ayurveda":
+                "🌿 ಆಯುರ್ವೇದ",
+
+            "Yoga & Naturopathy":
+                "🧘 ಯೋಗ ಮತ್ತು ಪ್ರಕೃತಿ ಚಿಕಿತ್ಸೆ",
+
+            "Unani":
+                "🌙 ಯುನಾನಿ",
+
+            "Siddha":
+                "🌱 ಸಿದ್ಧ",
+
+            "Homoeopathy":
+                "💊 ಹೋಮಿಯೋಪತಿ",
+
+            "Not Sure":
+                "❓ ಖಚಿತವಿಲ್ಲ"
+
+        },
+
+        hi: {
+
+            "Ayurveda":
+                "🌿 आयुर्वेद",
+
+            "Yoga & Naturopathy":
+                "🧘 योग और प्राकृतिक चिकित्सा",
+
+            "Unani":
+                "🌙 यूनानी",
+
+            "Siddha":
+                "🌱 सिद्ध",
+
+            "Homoeopathy":
+                "💊 होम्योपैथी",
+
+            "Not Sure":
+                "❓ निश्चित नहीं"
+
+        }
+
+    };
+
+
+    return names[language]?.[system]
+        || names.en[system]
+        || system;
+
+}
+
+
+
+/* =====================================================
+   SELECT AYUSH SYSTEM
+===================================================== */
+
+function selectSystem(system) {
+
+    selectedSystem = system;
+
+    currentQuestion = 0;
+
+    answers = [];
+
+
+    document.getElementById("systemCard")
+        .classList.add("hidden");
+
+
+    document.getElementById("questionCard")
+        .classList.remove("hidden");
+
+
+    document.getElementById("selectedSystem")
+        .innerText =
+        getSystemDisplayName(system);
+
+
+    showQuestion();
+
+
+    setTimeout(function() {
+
+        speakQuestion();
+
+    }, 500);
+
+}
+
+
+
+/* =====================================================
+   GET CURRENT QUESTIONS
+===================================================== */
+
+function getQuestions() {
+
+    const languageQuestions =
+        questions[language] || questions.en;
+
+
+    return languageQuestions[selectedSystem];
+
+}
+
+
+
+/* =====================================================
+   SHOW QUESTION
+===================================================== */
+
+function showQuestion() {
+
+    const list =
+        getQuestions();
+
+
+    if (!list ||
+        currentQuestion >= list.length) {
+
+        finishHistory();
+
+        return;
+
+    }
+
+
+    document.getElementById("question")
+        .innerText =
+        list[currentQuestion];
+
+
+    document.getElementById("answer")
+        .value = "";
+
+
+    document.getElementById("progress")
+        .innerText =
+        `${currentQuestion + 1} / ${list.length}`;
+
+
+    document.getElementById("status")
+        .innerText = "";
+
+}
+
+
+
+/* =====================================================
+   SPEAK QUESTION
+===================================================== */
+
+function speakQuestion() {
+
+    const list =
+        getQuestions();
+
+
+    if (!list) return;
+
+
+    const speech =
+        new SpeechSynthesisUtterance(
+            list[currentQuestion]
+        );
+
+
+    const voiceLanguage = {
+
+        en: "en-IN",
+
+        kn: "kn-IN",
+
+        hi: "hi-IN"
+
+    };
+
+
+    speech.lang =
+        voiceLanguage[language] || "en-IN";
+
+
+    speech.rate = 0.9;
+
+
+    window.speechSynthesis.cancel();
+
+
+    window.speechSynthesis.speak(
+        speech
+    );
+
+}
+
+
+
+/* =====================================================
+   VOICE INPUT
+===================================================== */
+
+function startVoice() {
+
+    const Recognition =
+        window.SpeechRecognition ||
+        window.webkitSpeechRecognition;
+
+
+    if (!Recognition) {
+
+        alert(
+            "Voice recognition is not supported. Please use Google Chrome."
+        );
+
+        return;
+
+    }
+
+
+    const recognition =
+        new Recognition();
+
+
+    const voiceLanguage = {
+
+        en: "en-IN",
+
+        kn: "kn-IN",
+
+        hi: "hi-IN"
+
+    };
+
+
+    recognition.lang =
+        voiceLanguage[language] || "en-IN";
+
+
+    recognition.continuous = false;
+
+    recognition.interimResults = false;
+
+
+    document.getElementById("status")
+        .innerText =
+        t.listening;
+
+
+    recognition.start();
+
+
+    recognition.onresult =
+        function(event) {
+
+            const result =
+                event.results[0][0]
+                    .transcript;
+
+
+            document.getElementById("answer")
+                .value = result;
+
+
+            document.getElementById("status")
+                .innerText =
+                t.captured;
+
+        };
+
+
+    recognition.onerror =
+        function() {
+
+            document.getElementById("status")
+                .innerText =
+                "❌ Please try again.";
+
+        };
+
+}
+
+
+
+/* =====================================================
+   NEXT QUESTION
+===================================================== */
+
+function nextQuestion() {
+
+    const answer =
+        document.getElementById("answer")
+            .value
+            .trim();
+
+
+    if (!answer) {
+
+        alert(t.empty);
+
+        return;
+
+    }
+
+
+    const list =
+        getQuestions();
+
+
+    answers.push({
+
+        question:
+            list[currentQuestion],
+
+        answer:
+            answer
+
+    });
+
+
+    currentQuestion++;
+
+
+    showQuestion();
+
+}
+
+
+
+/* =====================================================
+   SAVE AYUSH HISTORY
+===================================================== */
+
+function finishHistory() {
+
+    const patientData = {
+
+        username:
+            loggedInUser,
+
+        type:
+            "AYUSH",
+
+        system:
+            selectedSystem,
+
+        systemDisplay:
+            getSystemDisplayName(
+                selectedSystem
+            ),
+
+        language:
+            language,
+
+        date:
+            new Date()
+                .toLocaleString(),
+
+        answers:
+            answers
+
+    };
+
+
+    let history = [];
+
+
+    try {
+
+        history =
+            JSON.parse(
+                localStorage.getItem(
+                    "ayushHistory"
+                ) || "[]"
+            );
+
+    }
+
+    catch(error) {
+
+        console.error(
+            "AYUSH history error:",
+            error
+        );
+
+        history = [];
+
+    }
+
+
+    history.push(patientData);
+
+
+    localStorage.setItem(
+        "ayushHistory",
+        JSON.stringify(history)
+    );
+
+
+    document.getElementById("questionCard")
+        .classList.add("hidden");
+
+
+    document.getElementById("summaryBox")
+        .innerHTML = `
+
+        <div class="summary">
+
+            <h2>
+                🌿 ${t.completed}
+            </h2>
+
+
+            <p>
+
+                <strong>
+                    ${t.systemLabel}:
+                </strong>
+
+                ${escapeHTML(
+                    getSystemDisplayName(
+                        selectedSystem
+                    )
+                )}
+
+            </p>
+
+
+            <p>
+
+                👤
+                ${escapeHTML(
+                    loggedInUser
+                )}
+
+            </p>
+
+
+            <hr>
+
+
+            ${answers.map(
+                function(item) {
+
+                    return `
+
+                        <p>
+
+                            <strong>
+                                ${escapeHTML(
+                                    item.question
+                                )}
+                            </strong>
+
+                            <br>
+
+                            ${escapeHTML(
+                                item.answer
+                            )}
+
+                        </p>
+
+                    `;
+
+                }
+            ).join("")}
+
+
+            <p>
+                ✅ ${t.saved}
+            </p>
+
+        </div>
+
+    `;
+
+}
+
+
+
+/* =====================================================
+   ESCAPE HTML
+===================================================== */
+
+function escapeHTML(value) {
+
+    return String(value)
+
+        .replace(
+            /&/g,
+            "&amp;"
+        )
+
+        .replace(
+            /</g,
+            "&lt;"
+        )
+
+        .replace(
+            />/g,
+            "&gt;"
+        )
+
+        .replace(
+            /"/g,
+            "&quot;"
+        )
+
+        .replace(
+            /'/g,
+            "&#039;"
+        );
+
+}
+
+
+
+/* =====================================================
+   BACK TO DASHBOARD
+===================================================== */
+
+function goBack() {
+
+    window.location.href =
+        "dashboard.html?role=patient&lang=" +
+        encodeURIComponent(
+            language
+        );
+
+}
+
+
+
+/* =====================================================
+   APPLY LANGUAGE TO UI
+===================================================== */
+
+document.getElementById("title")
+    .innerText =
+    t.title;
+
+
+document.getElementById("subtitle")
+    .innerText =
+    t.subtitle;
+
+
+document.getElementById("systemQuestion")
+    .innerText =
+    t.system;
+
+
+document.getElementById("answer")
+    .placeholder =
+    t.type;
+
+
+document.getElementById("voiceBtn")
+    .innerText =
+    t.voice;
+
+
+document.getElementById("speakBtn")
+    .innerText =
+    t.hear;
+
+
+document.getElementById("nextBtn")
+    .innerText =
+    t.next;
+
+
+document.getElementById("backBtn")
+    .innerText =
+    t.back;
+
+
+
+/* =====================================================
+   APPLY AYUSH OPTION LANGUAGE
+===================================================== */
+
+document.getElementById("ayurvedaBtn")
+    .innerText =
+    t.ayurveda;
+
+
+document.getElementById("yogaBtn")
+    .innerText =
+    t.yoga;
+
+
+document.getElementById("unaniBtn")
+    .innerText =
+    t.unani;
+
+
+document.getElementById("siddhaBtn")
+    .innerText =
+    t.siddha;
+
+
+document.getElementById("homeopathyBtn")
+    .innerText =
+    t.homeopathy;
+
+
+document.getElementById("notSureBtn")
+    .innerText =
+    t.notSure;
+
+
+</script>
+
+</body>
+
+</html>

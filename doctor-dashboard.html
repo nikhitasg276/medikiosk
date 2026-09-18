@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>MediKiosk - Doctor Dashboard</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <div class="home-container">
+
+        <div class="logo">👨‍⚕️</div>
+
+        <h1 id="title">Doctor Dashboard</h1>
+
+        <p id="welcome">
+            Welcome, Doctor. Review patient information here.
+        </p>
+
+
+        <!-- PATIENT CASES -->
+
+        <button onclick="viewCases()" id="casesBtn">
+            📋 View Patient Cases
+        </button>
+
+        <br><br>
+
+
+        <!-- CLINICAL SUMMARY -->
+
+        <button onclick="viewSummary()" id="summaryBtn">
+            🩺 View Clinical Summary
+        </button>
+
+        <br><br>
+
+
+        <!-- RED FLAG -->
+
+        <button onclick="viewAlerts()" id="alertBtn">
+            🚨 Red-Flag Alerts
+        </button>
+
+        <br><br>
+
+
+        <!-- AYUSH -->
+
+        <button onclick="viewAyush()" id="ayushBtn">
+            🌿 AYUSH Patient History
+        </button>
+        <br><br>
+        <br><br>
+
+<button onclick="viewABDM()" id="abdmBtn">
+    🇮🇳 ABDM Patient Records
+</button>
+        <br><br>
+
+<button onclick="viewABDM()" id="abdmBtn">
+    🇮🇳 ABDM Integration
+</button>
+
+<button onclick="viewHIS()" id="hisBtn">
+    🏥 HIS Integration
+</button>
+
+    </div>
+
+
+    <script>
+
+        /* =========================================
+           GET LANGUAGE
+        ========================================= */
+
+        const params =
+            new URLSearchParams(window.location.search);
+
+        const language =
+            params.get("lang") || "en";
+
+
+        /* =========================================
+           KANNADA
+        ========================================= */
+
+        if (language === "kn") {
+
+            document.getElementById("title").innerText =
+                "ವೈದ್ಯರ ಡ್ಯಾಶ್‌ಬೋರ್ಡ್";
+
+            document.getElementById("welcome").innerText =
+                "ಸ್ವಾಗತ, ವೈದ್ಯರೇ. ರೋಗಿಯ ಮಾಹಿತಿಯನ್ನು ಇಲ್ಲಿ ಪರಿಶೀಲಿಸಿ.";
+
+            document.getElementById("casesBtn").innerText =
+                "📋 ರೋಗಿಯ ಕೇಸ್‌ಗಳನ್ನು ವೀಕ್ಷಿಸಿ";
+
+            document.getElementById("summaryBtn").innerText =
+                "🩺 ವೈದ್ಯಕೀಯ ಸಾರಾಂಶ ವೀಕ್ಷಿಸಿ";
+
+            document.getElementById("alertBtn").innerText =
+                "🚨 ತುರ್ತು ಎಚ್ಚರಿಕೆಗಳು";
+
+            document.getElementById("ayushBtn").innerText =
+                "🌿 ಆಯುಷ್ ರೋಗಿಯ ಇತಿಹಾಸ"; 
+                document.getElementById("hisBtn").innerText =
+    "🏥 HIS ಸಂಪರ್ಕ";
+        }
+
+
+        /* =========================================
+           HINDI
+        ========================================= */
+
+        else if (language === "hi") {
+
+            document.getElementById("title").innerText =
+                "डॉक्टर डैशबोर्ड";
+
+            document.getElementById("welcome").innerText =
+                "स्वागत है, डॉक्टर। मरीज की जानकारी यहां देखें।";
+
+            document.getElementById("casesBtn").innerText =
+                "📋 मरीज के केस देखें";
+
+            document.getElementById("summaryBtn").innerText =
+                "🩺 चिकित्सा सारांश देखें";
+
+            document.getElementById("alertBtn").innerText =
+                "🚨 आपातकालीन चेतावनी";
+
+            document.getElementById("ayushBtn").innerText =
+                "🌿 आयुष मरीज का इतिहास";
+                document.getElementById("hisBtn").innerText =
+    "🏥 HIS एकीकरण";
+        }
+
+
+        /* =========================================
+           VIEW PATIENT CASES
+        ========================================= */
+
+        function viewCases() {
+
+            window.location.href =
+                "patient-cases.html?lang=" +
+                encodeURIComponent(language);
+
+        }
+
+
+        /* =========================================
+           VIEW CLINICAL SUMMARY
+        ========================================= */
+
+        function viewSummary() {
+
+            window.location.href =
+                "summary.html?lang=" +
+                encodeURIComponent(language);
+
+        }
+
+
+        /* =========================================
+           VIEW RED FLAG ALERTS
+        ========================================= */
+
+        function viewAlerts() {
+
+            window.location.href =
+                "alerts.html?lang=" +
+                encodeURIComponent(language);
+
+        }
+
+
+        /* =========================================
+           VIEW AYUSH HISTORY
+        ========================================= */
+
+        function viewAyush() {
+
+            window.location.href =
+                "doctor-ayush.html?lang=" +
+                encodeURIComponent(language);
+
+        }  
+        
+        function viewABDM() {
+
+    window.location.href =
+        "abdm.html?lang=" + language;
+
+}
+        function viewHIS() {
+
+    window.location.href =
+        "his.html?lang=" + language;
+
+}
+
+    </script>
+
+</body>
+
+</html>

@@ -1,0 +1,2969 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>MediKiosk - Patient Case Taking</title>
+
+    <!-- YOUR CSS -->
+    <link rel="stylesheet" href="style.css">
+
+    <!-- OCR LIBRARY -->
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+
+    <style>
+
+        .ai-box {
+            margin: 20px 0;
+            padding: 20px;
+            border: 2px solid #2196f3;
+            border-radius: 15px;
+            background: #f5fbff;
+        }
+
+        .ai-box h3 {
+            color: #1976d2;
+        }
+
+        #aiQuestion {
+            font-size: 18px;
+            font-weight: bold;
+            margin: 15px 0;
+        }
+
+        #aiAnswer {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 12px;
+            border: 1px solid #bbb;
+            border-radius: 10px;
+            font-size: 16px;
+        }
+
+        .ai-buttons button {
+            margin: 5px;
+        }
+
+        .adaptive-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            background: #e3f2fd;
+            color: #1976d2;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: bold;
+        }
+
+        .ocr-section {
+            margin: 25px 0;
+            padding: 20px;
+            border: 2px solid #4caf50;
+            border-radius: 15px;
+            background: #f8fff8;
+        }
+
+        .ocr-section textarea {
+            width: 100%;
+            box-sizing: border-box;
+            margin-top: 10px;
+            padding: 12px;
+            border-radius: 10px;
+            border: 1px solid #ccc;
+            resize: vertical;
+            font-size: 15px;
+        }
+
+        .ocr-status {
+            font-weight: bold;
+            margin-top: 15px;
+        }
+
+        .extracted-box {
+            margin-top: 20px;
+            padding: 18px;
+            background: white;
+            border-radius: 12px;
+            border: 2px solid #2196f3;
+            text-align: left;
+            display: none;
+        }
+
+        .medical-item {
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .medical-item:last-child {
+            border-bottom: none;
+        }
+
+        .warning-box {
+            margin-top: 15px;
+            padding: 12px;
+            background: #fff8e1;
+            border-radius: 8px;
+            font-size: 13px;
+        }
+
+        #saveBtn {
+            margin-top: 20px;
+            padding: 14px 28px;
+            cursor: pointer;
+        }
+
+        #saveBtn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+<div class="home-container">
+
+    <div class="logo">🩺</div>
+
+    <h1 id="title">
+        Patient Case Taking
+    </h1>
+
+    <p id="instruction">
+        Please provide your medical information
+    </p>
+
+
+    <!-- =====================================================
+         AI INTERVIEW
+    ====================================================== -->
+
+    <div class="ai-box">
+
+        <h3>
+            🤖 MediKiosk AI Health Assistant
+        </h3>
+
+        <span
+            id="questionType"
+            class="adaptive-badge">
+            Basic Question
+        </span>
+
+        <p id="aiQuestion">
+            What is your name?
+        </p>
+
+        <input
+            type="text"
+            id="aiAnswer"
+            placeholder="Type your answer"
+        >
+
+        <br><br>
+
+        <div class="ai-buttons">
+
+            <button
+                type="button"
+                onclick="speakCurrentQuestion()">
+                🔊 Speak Question
+            </button>
+
+            <button
+                type="button"
+                onclick="startAIAnswer()">
+                🎤 Speak Answer
+            </button>
+
+            <button
+                type="button"
+                onclick="nextAIQuestion()"
+                id="nextBtn">
+                ➡️ Next
+            </button>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         PATIENT FORM
+    ====================================================== -->
+
+    <form id="caseForm">
+
+        <!-- NAME -->
+
+        <label>
+            Patient Name
+        </label>
+
+        <input
+            type="text"
+            id="name"
+            required
+        >
+
+        <button
+            type="button"
+            onclick="startFieldVoice('name')">
+            🎤 Speak Name
+        </button>
+
+
+        <!-- AGE -->
+
+        <label>
+            Age
+        </label>
+
+        <input
+            type="number"
+            id="age"
+            min="0"
+            max="150"
+            required
+        >
+
+        <button
+            type="button"
+            onclick="startFieldVoice('age')">
+            🎤 Speak Age
+        </button>
+
+
+        <!-- GENDER -->
+
+        <label>
+            Gender
+        </label>
+
+        <select
+            id="gender"
+            required>
+
+            <option value="">
+                Select Gender
+            </option>
+
+            <option value="Male">
+                Male
+            </option>
+
+            <option value="Female">
+                Female
+            </option>
+
+            <option value="Other">
+                Other
+            </option>
+
+        </select>
+
+
+        <!-- MAIN PROBLEM -->
+
+        <label>
+            Main Problem
+        </label>
+
+        <textarea
+            id="complaint"
+            rows="3"
+            required></textarea>
+
+        <button
+            type="button"
+            onclick="startFieldVoice('complaint')">
+            🎤 Speak Main Problem
+        </button>
+
+
+        <!-- DURATION -->
+
+        <label>
+            Since When?
+        </label>
+
+        <input
+            type="text"
+            id="duration"
+            required
+        >
+
+        <button
+            type="button"
+            onclick="startFieldVoice('duration')">
+            🎤 Speak Duration
+        </button>
+
+
+        <!-- SYMPTOMS -->
+
+        <label>
+            Symptoms
+        </label>
+
+        <textarea
+            id="symptoms"
+            rows="3"></textarea>
+
+        <button
+            type="button"
+            onclick="startFieldVoice('symptoms')">
+            🎤 Speak Symptoms
+        </button>
+
+
+        <!-- HISTORY -->
+
+        <label>
+            Previous Diseases / Medical History
+        </label>
+
+        <textarea
+            id="history"
+            rows="3"></textarea>
+
+        <button
+            type="button"
+            onclick="startFieldVoice('history')">
+            🎤 Speak Medical History
+        </button>
+
+
+        <!-- ALLERGIES -->
+
+        <label>
+            Allergies
+        </label>
+
+        <textarea
+            id="allergies"
+            rows="3"></textarea>
+
+        <button
+            type="button"
+            onclick="startFieldVoice('allergies')">
+            🎤 Speak Allergies
+        </button>
+
+
+        <!-- MEDICINES -->
+
+        <label>
+            Current Medicines
+        </label>
+
+        <textarea
+            id="medicines"
+            rows="3"></textarea>
+
+        <button
+            type="button"
+            onclick="startFieldVoice('medicines')">
+            🎤 Speak Medicines
+        </button>
+
+
+        <!-- =====================================================
+             ADAPTIVE ANSWERS
+        ====================================================== -->
+
+        <div
+            id="adaptiveAnswers"
+            style="
+                margin-top:20px;
+                padding:20px;
+                border:2px solid #9c27b0;
+                border-radius:15px;
+                background:#fff8ff;
+                display:none;
+            ">
+
+            <h3>
+                🧠 Adaptive Clinical Questions
+            </h3>
+
+            <div id="adaptiveAnswersContent"></div>
+
+        </div>
+
+
+        <!-- =====================================================
+             MEDICAL DOCUMENT
+        ====================================================== -->
+
+        <label>
+            Previous Medical Documents
+        </label>
+
+        <p>
+            Upload previous prescriptions, lab reports
+            or discharge summaries.
+        </p>
+
+        <input
+            type="file"
+            id="medicalDocuments"
+            accept=".jpg,.jpeg,.png"
+        >
+
+
+        <!-- =====================================================
+             OCR + AI EXTRACTION
+        ====================================================== -->
+
+        <div class="ocr-section">
+
+            <h3>
+                🔎 Medical Document OCR
+            </h3>
+
+            <p>
+                Upload a prescription or medical report
+                and extract the text automatically.
+            </p>
+
+            <button
+                type="button"
+                onclick="startOCR()"
+                id="ocrBtn">
+                🔎 Extract Text from Document
+            </button>
+
+            <p
+                id="ocrStatus"
+                class="ocr-status">
+            </p>
+
+            <textarea
+                id="ocrText"
+                rows="10"
+                placeholder="Extracted document text will appear here..."></textarea>
+
+            <br><br>
+
+            <button
+                type="button"
+                onclick="extractMedicalInfo()"
+                id="extractBtn"
+                disabled>
+                🤖 Extract Medical Information
+            </button>
+
+            <p
+                id="extractStatus"
+                class="ocr-status">
+            </p>
+
+
+            <!-- AI RESULT -->
+
+            <div
+                id="medicalInfo"
+                class="extracted-box">
+            </div>
+
+        </div>
+
+
+        <!-- =====================================================
+             SAVE
+        ====================================================== -->
+
+        <button
+            type="submit"
+            id="saveBtn">
+            💾 Save Case
+        </button>
+
+    </form>
+
+</div>
+
+
+
+<script>
+
+/* =========================================================
+   LANGUAGE
+========================================================= */
+
+const params =
+    new URLSearchParams(
+        window.location.search
+    );
+
+const language =
+    params.get("lang") || "en";
+
+
+/* =========================================================
+   LANGUAGE TEXT
+========================================================= */
+
+const languageText = {
+
+    en: {
+
+        name: "What is your name?",
+
+        age: "What is your age?",
+
+        gender:
+            "What is your gender? Male, Female or Other?",
+
+        complaint:
+            "What is your main problem?",
+
+        duration:
+            "Since when do you have this problem?",
+
+        symptoms:
+            "What symptoms are you experiencing?",
+
+        history:
+            "Do you have any previous diseases or medical history?",
+
+        allergies:
+            "Do you have any allergies?",
+
+        medicines:
+            "Are you currently taking any medicines?",
+
+        completed:
+            "✅ All questions completed!"
+    },
+
+    kn: {
+
+        name: "ನಿಮ್ಮ ಹೆಸರು ಏನು?",
+
+        age: "ನಿಮ್ಮ ವಯಸ್ಸು ಎಷ್ಟು?",
+
+        gender:
+            "ನಿಮ್ಮ ಲಿಂಗ ಯಾವುದು? ಪುರುಷ, ಮಹಿಳೆ ಅಥವಾ ಇತರೆ?",
+
+        complaint:
+            "ನಿಮ್ಮ ಮುಖ್ಯ ಸಮಸ್ಯೆ ಏನು?",
+
+        duration:
+            "ಈ ಸಮಸ್ಯೆ ಯಾವಾಗಿನಿಂದ ಇದೆ?",
+
+        symptoms:
+            "ನಿಮಗೆ ಯಾವ ಯಾವ ಲಕ್ಷಣಗಳಿವೆ?",
+
+        history:
+            "ನಿಮಗೆ ಹಿಂದಿನ ಯಾವುದೇ ಕಾಯಿಲೆಗಳು ಅಥವಾ ವೈದ್ಯಕೀಯ ಇತಿಹಾಸ ಇದೆಯೇ?",
+
+        allergies:
+            "ನಿಮಗೆ ಯಾವುದಾದರೂ ಅಲರ್ಜಿ ಇದೆಯೇ?",
+
+        medicines:
+            "ನೀವು ಪ್ರಸ್ತುತ ಯಾವುದೇ ಔಷಧಿಗಳನ್ನು ತೆಗೆದುಕೊಳ್ಳುತ್ತಿದ್ದೀರಾ?",
+
+        completed:
+            "✅ ಎಲ್ಲಾ ಪ್ರಶ್ನೆಗಳು ಪೂರ್ಣಗೊಂಡಿವೆ!"
+    },
+
+    hi: {
+
+        name: "आपका नाम क्या है?",
+
+        age: "आपकी उम्र कितनी है?",
+
+        gender:
+            "आपका लिंग क्या है? पुरुष, महिला या अन्य?",
+
+        complaint:
+            "आपकी मुख्य समस्या क्या है?",
+
+        duration:
+            "यह समस्या कब से है?",
+
+        symptoms:
+            "आपको कौन-कौन से लक्षण हैं?",
+
+        history:
+            "क्या आपको पहले कोई बीमारी या चिकित्सा इतिहास है?",
+
+        allergies:
+            "क्या आपको किसी चीज से एलर्जी है?",
+
+        medicines:
+            "क्या आप वर्तमान में कोई दवा ले रहे हैं?",
+
+        completed:
+            "✅ सभी प्रश्न पूरे हो गए!"
+    }
+
+};
+
+const langText =
+    languageText[language] ||
+    languageText.en;
+
+
+/* =========================================================
+   AI BASIC QUESTIONS
+========================================================= */
+
+let aiQuestions = [
+
+    {
+        field: "name",
+        question: langText.name,
+        type: "basic"
+    },
+
+    {
+        field: "age",
+        question: langText.age,
+        type: "basic"
+    },
+
+    {
+        field: "gender",
+        question: langText.gender,
+        type: "basic"
+    },
+
+    {
+        field: "complaint",
+        question: langText.complaint,
+        type: "basic"
+    },
+
+    {
+        field: "duration",
+        question: langText.duration,
+        type: "basic"
+    },
+
+    {
+        field: "symptoms",
+        question: langText.symptoms,
+        type: "basic"
+    },
+
+    {
+        field: "history",
+        question: langText.history,
+        type: "basic"
+    },
+
+    {
+        field: "allergies",
+        question: langText.allergies,
+        type: "basic"
+    },
+
+    {
+        field: "medicines",
+        question: langText.medicines,
+        type: "basic"
+    }
+
+];
+
+let aiStep = 0;
+
+
+/* =========================================================
+   ADAPTIVE QUESTIONS
+========================================================= */
+
+let adaptiveQuestions = [];
+
+
+function createAdaptiveQuestions(complaint) {
+
+    const text =
+        complaint.toLowerCase();
+
+    let questions = [];
+
+
+    /* HEADACHE */
+
+    if (
+
+        text.includes("headache") ||
+        text.includes("head pain") ||
+        text.includes("migraine") ||
+        text.includes("ತಲೆನೋವು") ||
+        text.includes("ತಲೆ ನೋವು") ||
+        text.includes("सिरदर्द")
+
+    ) {
+
+        questions = [
+
+            {
+                question:
+                    language === "kn"
+                        ? "ತಲೆನೋವು ಯಾವ ಭಾಗದಲ್ಲಿ ಹೆಚ್ಚು ಇದೆ?"
+                        : language === "hi"
+                            ? "सिरदर्द सिर के किस हिस्से में ज्यादा है?"
+                            : "Where exactly is the headache located?",
+
+                field: "headache_location"
+            },
+
+            {
+                question:
+                    language === "kn"
+                        ? "ತಲೆನೋವು ಎಷ್ಟು ತೀವ್ರವಾಗಿದೆ? ಸೌಮ್ಯ, ಮಧ್ಯಮ ಅಥವಾ ತೀವ್ರ?"
+                        : language === "hi"
+                            ? "सिरदर्द कितना तेज है? हल्का, मध्यम या तेज?"
+                            : "How severe is the headache: mild, moderate or severe?",
+
+                field: "headache_severity"
+            },
+
+            {
+                question:
+                    language === "kn"
+                        ? "ತಲೆನೋವಿನ ಜೊತೆಗೆ ವಾಂತಿ ಅಥವಾ ತಲೆಸುತ್ತುವಿಕೆ ಇದೆಯೇ?"
+                        : language === "hi"
+                            ? "क्या सिरदर्द के साथ उल्टी या चक्कर आते हैं?"
+                            : "Do you have vomiting or dizziness with the headache?",
+
+                field: "headache_associated"
+            },
+
+            {
+                question:
+                    language === "kn"
+                        ? "ಬೆಳಕನ್ನು ನೋಡಿದಾಗ ತಲೆನೋವು ಹೆಚ್ಚಾಗುತ್ತದೆಯೇ?"
+                        : language === "hi"
+                            ? "क्या रोशनी देखने पर सिरदर्द बढ़ जाता है?"
+                            : "Does the headache become worse with bright light?",
+
+                field: "headache_light"
+            }
+
+        ];
+
+    }
+
+
+    /* FEVER */
+
+    else if (
+
+        text.includes("fever") ||
+        text.includes("temperature") ||
+        text.includes("ಜ್ವರ") ||
+        text.includes("ಬಿಸಿ") ||
+        text.includes("बुखार")
+
+    ) {
+
+        questions = [
+
+            {
+                question:
+                    language === "kn"
+                        ? "ನಿಮ್ಮ ತಾಪಮಾನ ಎಷ್ಟು ಇತ್ತು?"
+                        : language === "hi"
+                            ? "आपका तापमान कितना था?"
+                            : "What was your temperature?",
+
+                field: "temperature"
+            },
+
+            {
+                question:
+                    language === "kn"
+                        ? "ಜ್ವರದ ಜೊತೆಗೆ ಚಳಿ ಅಥವಾ ನಡುಕ ಇದೆಯೇ?"
+                        : language === "hi"
+                            ? "क्या बुखार के साथ ठंड या कंपकंपी होती है?"
+                            : "Do you have chills or shivering with the fever?",
+
+                field: "chills"
+            },
+
+            {
+                question:
+                    language === "kn"
+                        ? "ಜ್ವರದ ಜೊತೆಗೆ ಕೆಮ್ಮು ಅಥವಾ ಗಂಟಲು ನೋವು ಇದೆಯೇ?"
+                        : language === "hi"
+                            ? "क्या बुखार के साथ खांसी या गले में दर्द है?"
+                            : "Do you have cough or sore throat with the fever?",
+
+                field: "fever_cough"
+            },
+
+            {
+                question:
+                    language === "kn"
+                        ? "ದೇಹದಲ್ಲಿ ನೋವು ಇದೆಯೇ?"
+                        : language === "hi"
+                            ? "क्या शरीर में दर्द है?"
+                            : "Do you have body pain?",
+
+                field: "body_pain"
+            }
+
+        ];
+
+    }
+
+
+    /* COUGH */
+
+    else if (
+
+        text.includes("cough") ||
+        text.includes("ಕೆಮ್ಮು") ||
+        text.includes("खांसी")
+
+    ) {
+
+        questions = [
+
+            {
+                question:
+                    language === "kn"
+                        ? "ಕೆಮ್ಮು ಒಣಗಿದೆಯೇ ಅಥವಾ ಕಫ ಬರುತ್ತಿದೆಯೇ?"
+                        : language === "hi"
+                            ? "खांसी सूखी है या बलगम आता है?"
+                            : "Is the cough dry or are you producing phlegm?",
+
+                field: "cough_type"
+            },
+
+            {
+                question:
+                    language === "kn"
+                        ? "ಕಫದ ಬಣ್ಣ ಹೇಗಿದೆ?"
+                        : language === "hi"
+                            ? "बलगम का रंग कैसा है?"
+                            : "What is the colour of the phlegm?",
+
+                field: "phlegm_colour"
+            },
+
+            {
+                question:
+                    language === "kn"
+                        ? "ಉಸಿರಾಟದಲ್ಲಿ ತೊಂದರೆ ಇದೆಯೇ?"
+                        : language === "hi"
+                            ? "क्या सांस लेने में परेशानी है?"
+                            : "Do you have difficulty breathing?",
+
+                field: "breathing"
+            },
+
+            {
+                question:
+                    language === "kn"
+                        ? "ಎದೆ ನೋವು ಇದೆಯೇ?"
+                        : language === "hi"
+                            ? "क्या सीने में दर्द है?"
+                            : "Do you have chest pain?",
+
+                field: "chest_pain"
+            }
+
+        ];
+
+    }
+
+
+    /* STOMACH PAIN */
+
+    else if (
+
+        text.includes("stomach") ||
+        text.includes("abdomen") ||
+        text.includes("abdominal") ||
+        text.includes("ಹೊಟ್ಟೆ") ||
+        text.includes("पेट")
+
+    ) {
+
+        questions = [
+
+            {
+                question:
+                    language === "kn"
+                        ? "ಹೊಟ್ಟೆಯ ಯಾವ ಭಾಗದಲ್ಲಿ ನೋವು ಇದೆ?"
+                        : language === "hi"
+                            ? "पेट के किस हिस्से में दर्द है?"
+                            : "Which part of your abdomen hurts?",
+
+                field: "pain_location"
+            },
+
+            {
+                question:
+                    language === "kn"
+                        ? "ನೋವು ಊಟದ ನಂತರ ಹೆಚ್ಚಾಗುತ್ತದೆಯೇ?"
+                        : language === "hi"
+                            ? "क्या खाना खाने के बाद दर्द बढ़ता है?"
+                            : "Does the pain increase after eating?",
+
+                field: "after_food"
+            },
+
+            {
+                question:
+                    language === "kn"
+                        ? "ವಾಂತಿ ಅಥವಾ ಅತಿಸಾರ ಇದೆಯೇ?"
+                        : language === "hi"
+                            ? "क्या उल्टी या दस्त हैं?"
+                            : "Do you have vomiting or diarrhea?",
+
+                field: "vomiting_diarrhea"
+            },
+
+            {
+                question:
+                    language === "kn"
+                        ? "ಮಲವಿಸರ್ಜನೆಯಲ್ಲಿ ಯಾವುದೇ ಬದಲಾವಣೆ ಇದೆಯೇ?"
+                        : language === "hi"
+                            ? "क्या मल त्याग में कोई बदलाव हुआ है?"
+                            : "Have you noticed any change in bowel movements?",
+
+                field: "bowel_change"
+            }
+
+        ];
+
+    }
+
+
+    /* CHEST PAIN */
+
+    else if (
+
+        text.includes("chest pain") ||
+        text.includes("chest") ||
+        text.includes("ಎದೆ ನೋವು") ||
+        text.includes("सीने में दर्द")
+
+    ) {
+
+        questions = [
+
+            {
+                question:
+                    language === "kn"
+                        ? "ಎದೆನೋವು ಎಡಭಾಗದಲ್ಲಿದೆಯೇ ಅಥವಾ ಮಧ್ಯದಲ್ಲಿದೆಯೇ?"
+                        : language === "hi"
+                            ? "सीने का दर्द बाईं तरफ है या बीच में?"
+                            : "Is the chest pain on the left side or in the center?",
+
+                field: "chest_location"
+            },
+
+            {
+                question:
+                    language === "kn"
+                        ? "ನೋವು ಕೈ, ಭುಜ ಅಥವಾ ದವಡೆಗೆ ಹರಡುತ್ತದೆಯೇ?"
+                        : language === "hi"
+                            ? "क्या दर्द हाथ, कंधे या जबड़े तक फैलता है?"
+                            : "Does the pain spread to your arm, shoulder or jaw?",
+
+                field: "pain_radiation"
+            },
+
+            {
+                question:
+                    language === "kn"
+                        ? "ಉಸಿರಾಟದಲ್ಲಿ ತೊಂದರೆ ಇದೆಯೇ?"
+                        : language === "hi"
+                            ? "क्या सांस लेने में परेशानी है?"
+                            : "Do you have difficulty breathing?",
+
+                field: "chest_breathing"
+            },
+
+            {
+                question:
+                    language === "kn"
+                        ? "ಬೆವರು ಅಥವಾ ತಲೆಸುತ್ತುವಿಕೆ ಇದೆಯೇ?"
+                        : language === "hi"
+                            ? "क्या पसीना या चक्कर आ रहे हैं?"
+                            : "Do you have sweating or dizziness?",
+
+                field: "sweating_dizziness"
+            }
+
+        ];
+
+    }
+
+
+    /* GENERAL PAIN */
+
+    else if (
+
+        text.includes("pain") ||
+        text.includes("ನೋವು") ||
+        text.includes("दर्द")
+
+    ) {
+
+        questions = [
+
+            {
+                question:
+                    language === "kn"
+                        ? "ನೋವು ಯಾವ ಸ್ಥಳದಲ್ಲಿದೆ?"
+                        : language === "hi"
+                            ? "दर्द कहाँ है?"
+                            : "Where exactly is the pain?",
+
+                field: "pain_location"
+            },
+
+            {
+                question:
+                    language === "kn"
+                        ? "ನೋವು ಎಷ್ಟು ತೀವ್ರವಾಗಿದೆ?"
+                        : language === "hi"
+                            ? "दर्द कितना तेज है?"
+                            : "How severe is the pain?",
+
+                field: "pain_severity"
+            },
+
+            {
+                question:
+                    language === "kn"
+                        ? "ನೋವು ನಿರಂತರವಾಗಿದೆಯೇ ಅಥವಾ ಬರುತ್ತಾ ಹೋಗುತ್ತದೆಯೇ?"
+                        : language === "hi"
+                            ? "दर्द लगातार रहता है या आता-जाता है?"
+                            : "Is the pain continuous or does it come and go?",
+
+                field: "pain_pattern"
+            }
+
+        ];
+
+    }
+
+
+    /* DEFAULT */
+
+    else {
+
+        questions = [
+
+            {
+                question:
+                    language === "kn"
+                        ? "ಈ ಸಮಸ್ಯೆಯಿಂದ ನಿಮ್ಮ ದೈನಂದಿನ ಕೆಲಸಗಳಿಗೆ ತೊಂದರೆಯಾಗುತ್ತಿದೆಯೇ?"
+                        : language === "hi"
+                            ? "क्या इस समस्या से आपके दैनिक काम प्रभावित हो रहे हैं?"
+                            : "Is this problem affecting your daily activities?",
+
+                field: "daily_activity"
+            },
+
+            {
+                question:
+                    language === "kn"
+                        ? "ಈ ಸಮಸ್ಯೆ ಹೆಚ್ಚಾಗುತ್ತಿದೆಯೇ ಅಥವಾ ಕಡಿಮೆಯಾಗುತ್ತಿದೆಯೇ?"
+                        : language === "hi"
+                            ? "क्या समस्या बढ़ रही है या कम हो रही है?"
+                            : "Is the problem getting better or worse?",
+
+                field: "problem_change"
+            },
+
+            {
+                question:
+                    language === "kn"
+                        ? "ಈ ಸಮಸ್ಯೆಗೆ ನೀವು ಯಾವುದೇ ಔಷಧಿ ತೆಗೆದುಕೊಂಡಿದ್ದೀರಾ?"
+                        : language === "hi"
+                            ? "क्या आपने इस समस्या के लिए कोई दवा ली है?"
+                            : "Have you taken any medicine for this problem?",
+
+                field: "previous_medicine"
+            }
+
+        ];
+
+    }
+
+    return questions;
+}
+
+
+/* =========================================================
+   SHOW AI QUESTION
+========================================================= */
+
+function showAIQuestion() {
+
+    const questionElement =
+        document.getElementById("aiQuestion");
+
+    const answerElement =
+        document.getElementById("aiAnswer");
+
+    const nextButton =
+        document.getElementById("nextBtn");
+
+    const typeElement =
+        document.getElementById("questionType");
+
+
+    if (aiStep >= aiQuestions.length) {
+
+        questionElement.innerText =
+            langText.completed;
+
+        answerElement.style.display =
+            "none";
+
+        nextButton.style.display =
+            "none";
+
+        typeElement.innerText =
+            "Completed";
+
+        return;
+    }
+
+
+    const current =
+        aiQuestions[aiStep];
+
+
+    questionElement.innerText =
+        current.question;
+
+    answerElement.value =
+        "";
+
+    answerElement.style.display =
+        "block";
+
+    nextButton.style.display =
+        "inline-block";
+
+
+    if (current.type === "adaptive") {
+
+        typeElement.innerText =
+            "🧠 Adaptive Question";
+
+    }
+    else {
+
+        typeElement.innerText =
+            "Basic Question";
+
+    }
+
+}
+
+
+/* =========================================================
+   SPEAK QUESTION
+========================================================= */
+
+function speakCurrentQuestion() {
+
+    if (
+        aiStep >=
+        aiQuestions.length
+    ) {
+        return;
+    }
+
+    window.speechSynthesis.cancel();
+
+
+    const question =
+        aiQuestions[aiStep].question;
+
+
+    const speech =
+        new SpeechSynthesisUtterance(
+            question
+        );
+
+
+    if (language === "kn") {
+
+        speech.lang =
+            "kn-IN";
+
+    }
+
+    else if (language === "hi") {
+
+        speech.lang =
+            "hi-IN";
+
+    }
+
+    else {
+
+        speech.lang =
+            "en-IN";
+
+    }
+
+
+    speech.rate = 0.9;
+
+    speech.pitch = 1;
+
+
+    window.speechSynthesis.speak(
+        speech
+    );
+
+}
+
+
+/* =========================================================
+   AI VOICE ANSWER
+========================================================= */
+
+function startAIAnswer() {
+
+    const SpeechRecognition =
+        window.SpeechRecognition ||
+        window.webkitSpeechRecognition;
+
+
+    if (!SpeechRecognition) {
+
+        alert(
+            "Voice input is not supported in this browser."
+        );
+
+        return;
+    }
+
+
+    const recognition =
+        new SpeechRecognition();
+
+
+    if (language === "kn") {
+
+        recognition.lang =
+            "kn-IN";
+
+    }
+
+    else if (language === "hi") {
+
+        recognition.lang =
+            "hi-IN";
+
+    }
+
+    else {
+
+        recognition.lang =
+            "en-IN";
+
+    }
+
+
+    recognition.continuous = false;
+
+    recognition.interimResults = false;
+
+
+    recognition.onresult =
+        function(event) {
+
+            const answer =
+                event.results[0][0]
+                    .transcript;
+
+
+            document.getElementById(
+                "aiAnswer"
+            ).value = answer;
+
+        };
+
+
+    recognition.onerror =
+        function(event) {
+
+            alert(
+                "Voice error: " +
+                event.error
+            );
+
+        };
+
+
+    try {
+
+        recognition.start();
+
+    }
+
+    catch (error) {
+
+        console.log(error);
+
+    }
+
+}
+
+
+/* =========================================================
+   NEXT AI QUESTION
+========================================================= */
+
+function nextAIQuestion() {
+
+    const answer =
+        document
+            .getElementById("aiAnswer")
+            .value
+            .trim();
+
+
+    if (answer === "") {
+
+        alert(
+
+            language === "kn"
+                ? "ದಯವಿಟ್ಟು ಉತ್ತರವನ್ನು ನೀಡಿ."
+                : language === "hi"
+                    ? "कृपया उत्तर दें."
+                    : "Please provide an answer."
+
+        );
+
+        return;
+    }
+
+
+    const current =
+        aiQuestions[aiStep];
+
+
+    const field =
+        document.getElementById(
+            current.field
+        );
+
+
+    /* NORMAL FORM FIELDS */
+
+    if (field) {
+
+        if (
+            current.field ===
+            "gender"
+        ) {
+
+            const lower =
+                answer.toLowerCase();
+
+
+            if (
+
+                lower.includes("female") ||
+                lower.includes("ಮಹಿಳೆ") ||
+                lower.includes("महिला")
+
+            ) {
+
+                field.value =
+                    "Female";
+
+            }
+
+            else if (
+
+                lower.includes("male") ||
+                lower.includes("ಪುರುಷ") ||
+                lower.includes("पुरुष")
+
+            ) {
+
+                field.value =
+                    "Male";
+
+            }
+
+            else {
+
+                field.value =
+                    "Other";
+
+            }
+
+        }
+
+        else {
+
+            field.value =
+                answer;
+
+        }
+
+    }
+
+
+    /* ADAPTIVE ANSWER */
+
+    if (
+        current.type ===
+        "adaptive"
+    ) {
+
+        saveAdaptiveAnswer(
+            current.field,
+            answer
+        );
+
+    }
+
+
+    /* CREATE ADAPTIVE QUESTIONS */
+
+    if (
+        current.field ===
+        "complaint"
+    ) {
+
+        adaptiveQuestions =
+            createAdaptiveQuestions(
+                answer
+            );
+
+
+        const basicRemaining =
+            aiQuestions.slice(
+                aiStep + 1
+            );
+
+
+        const adaptive =
+            adaptiveQuestions.map(
+                function(item) {
+
+                    return {
+
+                        field:
+                            item.field,
+
+                        question:
+                            item.question,
+
+                        type:
+                            "adaptive"
+
+                    };
+
+                }
+            );
+
+
+        aiQuestions =
+            aiQuestions
+                .slice(0, aiStep + 1)
+                .concat(adaptive)
+                .concat(basicRemaining);
+
+    }
+
+
+    aiStep++;
+
+    showAIQuestion();
+
+}
+
+
+/* =========================================================
+   SAVE ADAPTIVE ANSWERS
+========================================================= */
+
+function saveAdaptiveAnswer(
+    fieldName,
+    answer
+) {
+
+    if (
+        !window.adaptivePatientAnswers
+    ) {
+
+        window.adaptivePatientAnswers =
+            {};
+
+    }
+
+
+    window.adaptivePatientAnswers[
+        fieldName
+    ] = answer;
+
+}
+
+
+/* =========================================================
+   NORMAL FIELD VOICE
+========================================================= */
+
+function startFieldVoice(fieldId) {
+
+    const SpeechRecognition =
+        window.SpeechRecognition ||
+        window.webkitSpeechRecognition;
+
+
+    if (!SpeechRecognition) {
+
+        alert(
+            "Voice input is not supported in this browser."
+        );
+
+        return;
+    }
+
+
+    const recognition =
+        new SpeechRecognition();
+
+
+    if (language === "kn") {
+
+        recognition.lang =
+            "kn-IN";
+
+    }
+
+    else if (language === "hi") {
+
+        recognition.lang =
+            "hi-IN";
+
+    }
+
+    else {
+
+        recognition.lang =
+            "en-IN";
+
+    }
+
+
+    recognition.continuous = false;
+
+    recognition.interimResults = false;
+
+
+    recognition.onresult =
+        function(event) {
+
+            const speechText =
+                event.results[0][0]
+                    .transcript;
+
+
+            document.getElementById(
+                fieldId
+            ).value =
+                speechText;
+
+        };
+
+
+    recognition.onerror =
+        function(event) {
+
+            alert(
+                "Voice error: " +
+                event.error
+            );
+
+        };
+
+
+    try {
+
+        recognition.start();
+
+    }
+
+    catch (error) {
+
+        console.log(error);
+
+    }
+
+}
+
+
+/* =========================================================
+   OCR
+========================================================= */
+
+async function startOCR() {
+
+    const fileInput =
+        document.getElementById(
+            "medicalDocuments"
+        );
+
+
+    const file =
+        fileInput.files[0];
+
+
+    const status =
+        document.getElementById(
+            "ocrStatus"
+        );
+
+
+    const ocrText =
+        document.getElementById(
+            "ocrText"
+        );
+
+
+    const ocrButton =
+        document.getElementById(
+            "ocrBtn"
+        );
+
+
+    const extractButton =
+        document.getElementById(
+            "extractBtn"
+        );
+
+
+    const medicalInfo =
+        document.getElementById(
+            "medicalInfo"
+        );
+
+
+    if (!file) {
+
+        alert(
+            "Please upload a JPG, JPEG or PNG medical report first."
+        );
+
+        return;
+    }
+
+
+    if (
+        !file.type.startsWith("image/")
+    ) {
+
+        alert(
+            "Please upload an image for OCR."
+        );
+
+        return;
+    }
+
+
+    status.innerText =
+        "🔄 Starting OCR... Please wait.";
+
+
+    ocrText.value = "";
+
+    medicalInfo.style.display =
+        "none";
+
+    medicalInfo.innerHTML = "";
+
+    extractButton.disabled = true;
+
+    ocrButton.disabled = true;
+
+
+    try {
+
+        const result =
+            await Tesseract.recognize(
+
+                file,
+
+                "eng",
+
+                {
+
+                    logger:
+                        function(info) {
+
+                            if (
+                                info.status ===
+                                "recognizing text"
+                            ) {
+
+                                const progress =
+                                    Math.round(
+                                        info.progress *
+                                        100
+                                    );
+
+
+                                status.innerText =
+                                    "🔄 Reading document: " +
+                                    progress +
+                                    "%";
+
+                            }
+
+                        }
+
+                }
+
+            );
+
+
+        const extractedText =
+            result.data.text.trim();
+
+
+        if (
+            extractedText === ""
+        ) {
+
+            status.innerText =
+                "⚠️ No readable text found.";
+
+            ocrText.value =
+                "No text could be extracted.";
+
+        }
+
+        else {
+
+            ocrText.value =
+                extractedText;
+
+            status.innerText =
+                "✅ OCR completed successfully!";
+
+            extractButton.disabled =
+                false;
+
+        }
+
+    }
+
+    catch (error) {
+
+        console.error(
+            "OCR Error:",
+            error
+        );
+
+        status.innerText =
+            "❌ OCR failed.";
+
+        alert(
+            "OCR could not read this document. Try a clearer image."
+        );
+
+    }
+
+    finally {
+
+        ocrButton.disabled =
+            false;
+
+    }
+
+}
+
+
+/* =========================================================
+   AI MEDICAL INFORMATION EXTRACTION
+========================================================= */
+
+function extractMedicalInfo() {
+
+    const text =
+        document
+            .getElementById("ocrText")
+            .value
+            .trim();
+
+
+    const status =
+        document.getElementById(
+            "extractStatus"
+        );
+
+
+    const output =
+        document.getElementById(
+            "medicalInfo"
+        );
+
+
+    const button =
+        document.getElementById(
+            "extractBtn"
+        );
+
+
+    if (text === "") {
+
+        alert(
+            "Please extract document text first."
+        );
+
+        return;
+    }
+
+
+    status.innerText =
+        "🤖 Analyzing medical information...";
+
+
+    output.style.display =
+        "block";
+
+
+    output.innerHTML =
+        "<p>🔄 Extracting information...</p>";
+
+
+    button.disabled = true;
+
+
+    setTimeout(
+        function() {
+
+            const information =
+                analyzeMedicalText(
+                    text
+                );
+
+
+            let html =
+                "<h3>🤖 AI Extracted Medical Information</h3>";
+
+
+            if (
+                information.patientName
+            ) {
+
+                html += `
+
+                    <div class="medical-item">
+
+                        <strong>
+                            👤 Patient Name:
+                        </strong>
+
+                        ${escapeHTML(
+                            information.patientName
+                        )}
+
+                    </div>
+
+                `;
+
+            }
+
+
+            if (
+                information.date
+            ) {
+
+                html += `
+
+                    <div class="medical-item">
+
+                        <strong>
+                            📅 Report Date:
+                        </strong>
+
+                        ${escapeHTML(
+                            information.date
+                        )}
+
+                    </div>
+
+                `;
+
+            }
+
+
+            if (
+                information.age
+            ) {
+
+                html += `
+
+                    <div class="medical-item">
+
+                        <strong>
+                            🎂 Age:
+                        </strong>
+
+                        ${escapeHTML(
+                            information.age
+                        )}
+
+                    </div>
+
+                `;
+
+            }
+
+
+            if (
+                information.bloodPressure
+            ) {
+
+                html += `
+
+                    <div class="medical-item">
+
+                        <strong>
+                            🩸 Blood Pressure:
+                        </strong>
+
+                        ${escapeHTML(
+                            information.bloodPressure
+                        )}
+
+                    </div>
+
+                `;
+
+            }
+
+
+            /* LAB RESULTS */
+
+            if (
+                information.labResults.length > 0
+            ) {
+
+                html +=
+                    "<h4>🧪 Laboratory Results</h4>";
+
+
+                information.labResults
+                    .forEach(
+                        function(item) {
+
+                            html += `
+
+                                <div class="medical-item">
+
+                                    ${escapeHTML(item)}
+
+                                </div>
+
+                            `;
+
+                        }
+                    );
+
+            }
+
+
+            /* MEDICINES */
+
+            if (
+                information.medicines.length > 0
+            ) {
+
+                html +=
+                    "<h4>💊 Medicines</h4>";
+
+
+                information.medicines
+                    .forEach(
+                        function(item) {
+
+                            html += `
+
+                                <div class="medical-item">
+
+                                    • ${escapeHTML(item)}
+
+                                </div>
+
+                            `;
+
+                        }
+                    );
+
+            }
+
+
+            /* COMMENTS */
+
+            if (
+                information.comments.length > 0
+            ) {
+
+                html +=
+                    "<h4>📋 Report Comments</h4>";
+
+
+                information.comments
+                    .forEach(
+                        function(item) {
+
+                            html += `
+
+                                <div class="medical-item">
+
+                                    • ${escapeHTML(item)}
+
+                                </div>
+
+                            `;
+
+                        }
+                    );
+
+            }
+
+
+            if (
+
+                !information.patientName &&
+                !information.date &&
+                !information.age &&
+                !information.bloodPressure &&
+                information.labResults.length === 0 &&
+                information.medicines.length === 0 &&
+                information.comments.length === 0
+
+            ) {
+
+                html += `
+
+                    <p>
+
+                        ⚠️ No structured medical information
+                        could be confidently detected.
+
+                    </p>
+
+                `;
+
+            }
+
+
+            html += `
+
+                <div class="warning-box">
+
+                    ⚠️ This information is extracted from
+                    the uploaded document. It is not a diagnosis.
+                    A doctor should verify the original report.
+
+                </div>
+
+            `;
+
+
+            output.innerHTML =
+                html;
+
+
+            window.extractedMedicalInformation =
+                information;
+
+
+            status.innerText =
+                "✅ Medical information extracted successfully!";
+
+
+            button.disabled =
+                false;
+
+        },
+
+        800
+
+    );
+
+}
+
+
+/* =========================================================
+   MEDICAL TEXT ANALYZER
+========================================================= */
+
+function analyzeMedicalText(text) {
+
+    const information = {
+
+        patientName: "",
+
+        date: "",
+
+        age: "",
+
+        bloodPressure: "",
+
+        labResults: [],
+
+        medicines: [],
+
+        comments: []
+
+    };
+
+
+    const lines =
+        text
+            .split(/\r?\n/)
+            .map(
+                function(line) {
+                    return line.trim();
+                }
+            )
+            .filter(
+                function(line) {
+                    return line.length > 0;
+                }
+            );
+
+
+    /* PATIENT NAME */
+
+    for (let line of lines) {
+
+        const match =
+            line.match(
+                /(?:patient\s*name|name)\s*[:\-]\s*([A-Za-z][A-Za-z .]{1,60})/i
+            );
+
+
+        if (match) {
+
+            information.patientName =
+                match[1].trim();
+
+            break;
+
+        }
+
+    }
+
+
+    /* DATE */
+
+    const datePatterns = [
+
+        /\b\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4}\b/,
+
+        /\b\d{4}[\/\-]\d{1,2}[\/\-]\d{1,2}\b/,
+
+        /\b\d{1,2}\s+(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\s+\d{2,4}\b/i,
+
+        /\b(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\s+\d{1,2},?\s+\d{2,4}\b/i
+
+    ];
+
+
+    for (let pattern of datePatterns) {
+
+        const match =
+            text.match(pattern);
+
+
+        if (match) {
+
+            information.date =
+                match[0];
+
+            break;
+
+        }
+
+    }
+
+
+    /* AGE */
+
+    const ageMatch =
+        text.match(
+            /(?:age)\s*[:\-]?\s*(\d{1,3})\s*(?:years?|yrs?)?/i
+        );
+
+
+    if (ageMatch) {
+
+        information.age =
+            ageMatch[1] +
+            " years";
+
+    }
+
+
+    /* BLOOD PRESSURE */
+
+    const bpMatch =
+        text.match(
+            /(?:blood\s*pressure|BP)\s*[:\-]?\s*(\d{2,3}\s*[\/\-]\s*\d{2,3})/i
+        );
+
+
+    if (bpMatch) {
+
+        information.bloodPressure =
+            bpMatch[1]
+                .replace("-", "/") +
+            " mmHg";
+
+    }
+
+
+    /* LAB RESULTS */
+
+    const labPatterns = [
+
+        {
+            name:
+                "Total Cholesterol",
+
+            regex:
+                /total\s+cholesterol[\s\S]{0,35}?(\d+(?:\.\d+)?)\s*(mg\/dL)?/i
+        },
+
+        {
+            name:
+                "Triglycerides",
+
+            regex:
+                /triglycerides[\s\S]{0,35}?(\d+(?:\.\d+)?)\s*(mg\/dL)?/i
+        },
+
+        {
+            name:
+                "HDL Cholesterol",
+
+            regex:
+                /HDL\s+cholesterol[\s\S]{0,35}?(\d+(?:\.\d+)?)\s*(mg\/dL)?/i
+        },
+
+        {
+            name:
+                "LDL Cholesterol",
+
+            regex:
+                /LDL\s+cholesterol[\s\S]{0,35}?(\d+(?:\.\d+)?)\s*(mg\/dL)?/i
+        },
+
+        {
+            name:
+                "Blood Sugar",
+
+            regex:
+                /blood\s+sugar[\s\S]{0,35}?(\d+(?:\.\d+)?)\s*(mg\/dL)?/i
+        },
+
+        {
+            name:
+                "Uric Acid",
+
+            regex:
+                /uric\s+acid[\s\S]{0,35}?(\d+(?:\.\d+)?)\s*(mg\/dL)?/i
+        },
+
+        {
+            name:
+                "Hemoglobin",
+
+            regex:
+                /(?:hemoglobin|haemoglobin|Hb)\s*[:\-]?\s*(\d+(?:\.\d+)?)\s*(g\/dL)?/i
+        }
+
+    ];
+
+
+    labPatterns.forEach(
+        function(item) {
+
+            const match =
+                text.match(
+                    item.regex
+                );
+
+
+            if (match) {
+
+                const unit =
+                    match[2] || "";
+
+
+                information.labResults.push(
+
+                    item.name +
+                    ": " +
+                    match[1] +
+                    (
+                        unit
+                            ? " " + unit
+                            : ""
+                    )
+
+                );
+
+            }
+
+        }
+    );
+
+
+    /* MEDICINES */
+
+    lines.forEach(
+        function(line) {
+
+            if (
+
+                /tablet|tab\.?|capsule|cap\.?|syrup|injection|medicine|medication/i
+                    .test(line)
+
+            ) {
+
+                information.medicines
+                    .push(line);
+
+            }
+
+        }
+    );
+
+
+    information.medicines =
+        [
+            ...new Set(
+                information.medicines
+            )
+        ];
+
+
+    /* COMMENTS */
+
+    lines.forEach(
+        function(line) {
+
+            if (
+
+                /comment|impression|conclusion|mild increase|high|low|abnormal/i
+                    .test(line)
+
+            ) {
+
+                information.comments
+                    .push(line);
+
+            }
+
+        }
+    );
+
+
+    information.comments =
+        [
+            ...new Set(
+                information.comments
+            )
+        ];
+
+
+    return information;
+
+}
+
+
+/* =========================================================
+   HTML ESCAPE
+========================================================= */
+
+function escapeHTML(value) {
+
+    return String(value)
+
+        .replace(
+            /&/g,
+            "&amp;"
+        )
+
+        .replace(
+            /</g,
+            "&lt;"
+        )
+
+        .replace(
+            />/g,
+            "&gt;"
+        )
+
+        .replace(
+            /"/g,
+            "&quot;"
+        )
+
+        .replace(
+            /'/g,
+            "&#039;"
+        );
+
+}
+
+
+/* =========================================================
+   DISPLAY ADAPTIVE ANSWERS
+========================================================= */
+
+function displayAdaptiveAnswers() {
+
+    const box =
+        document.getElementById(
+            "adaptiveAnswers"
+        );
+
+
+    const content =
+        document.getElementById(
+            "adaptiveAnswersContent"
+        );
+
+
+    const answers =
+        window.adaptivePatientAnswers ||
+        {};
+
+
+    const keys =
+        Object.keys(answers);
+
+
+    if (
+        keys.length === 0
+    ) {
+
+        box.style.display =
+            "none";
+
+        return;
+
+    }
+
+
+    box.style.display =
+        "block";
+
+
+    let html = "";
+
+
+    keys.forEach(
+        function(key) {
+
+            html += `
+
+                <div class="medical-item">
+
+                    <strong>
+                        ${formatAdaptiveLabel(key)}:
+                    </strong>
+
+                    ${escapeHTML(
+                        answers[key]
+                    )}
+
+                </div>
+
+            `;
+
+        }
+    );
+
+
+    content.innerHTML =
+        html;
+
+}
+
+
+/* =========================================================
+   ADAPTIVE LABEL
+========================================================= */
+
+function formatAdaptiveLabel(key) {
+
+    return key
+
+        .replace(
+            /_/g,
+            " "
+        )
+
+        .replace(
+            /\b\w/g,
+            function(letter) {
+
+                return letter.toUpperCase();
+
+            }
+        );
+
+}
+
+
+/* =========================================================
+   START AI
+========================================================= */
+
+showAIQuestion();
+/* =========================================================
+   CONVERT UPLOADED DOCUMENT TO BASE64
+========================================================= */
+function convertFileToBase64(file) {
+    return new Promise(function(resolve, reject) {
+
+        const reader = new FileReader();
+
+        reader.onload = function() {
+            resolve(reader.result);
+        };
+
+        reader.onerror = function(error) {
+            reject(error);
+        };
+
+        reader.readAsDataURL(file);
+    });
+}
+
+/* =========================================================
+   SAVE COMPLETE PATIENT CASE
+========================================================= */
+
+document
+    .getElementById("caseForm")
+    .addEventListener(
+        "submit",
+         async function(event) {
+
+            event.preventDefault();
+
+
+            const saveButton =
+                document.getElementById(
+                    "saveBtn"
+                );
+
+
+            saveButton.disabled =
+                true;
+
+
+            saveButton.innerText =
+                "💾 Saving...";
+
+
+            try {
+
+                /* =====================================
+                   GET REQUIRED FORM VALUES
+                ===================================== */
+
+                const name =
+                    document
+                        .getElementById("name")
+                        .value
+                        .trim();
+
+
+                const age =
+                    document
+                        .getElementById("age")
+                        .value
+                        .trim();
+
+
+                const gender =
+                    document
+                        .getElementById("gender")
+                        .value;
+
+
+                const complaint =
+                    document
+                        .getElementById("complaint")
+                        .value
+                        .trim();
+
+
+                const duration =
+                    document
+                        .getElementById("duration")
+                        .value
+                        .trim();
+
+
+                const symptoms =
+                    document
+                        .getElementById("symptoms")
+                        .value
+                        .trim();
+
+
+                const history =
+                    document
+                        .getElementById("history")
+                        .value
+                        .trim();
+
+
+                const allergies =
+                    document
+                        .getElementById("allergies")
+                        .value
+                        .trim();
+
+
+                const medicines =
+                    document
+                        .getElementById("medicines")
+                        .value
+                        .trim();
+
+
+                /* =====================================
+                   VALIDATION
+                ===================================== */
+
+                if (
+
+                    name === "" ||
+                    age === "" ||
+                    gender === "" ||
+                    complaint === "" ||
+                    duration === ""
+
+                ) {
+
+                    alert(
+                        "⚠️ Please fill all required fields."
+                    );
+
+
+                    saveButton.disabled =
+                        false;
+
+
+                    saveButton.innerText =
+                        "💾 Save Case";
+
+
+                    return;
+
+                }
+
+
+                /* =====================================
+                   OPTIONAL OCR
+                ===================================== */
+
+                const ocrText =
+                    document
+                        .getElementById("ocrText")
+                        .value
+                        .trim();
+
+
+                /* =====================================
+                   OPTIONAL AI EXTRACTION
+                ===================================== */
+
+                const extractedMedicalInformation =
+                    window.extractedMedicalInformation ||
+                    null;
+
+
+                /* =====================================
+                   OPTIONAL DOCUMENT
+                ===================================== */
+
+                const documentInput =
+                    document.getElementById(
+                        "medicalDocuments"
+                    );
+
+
+                let documentName = "";
+
+if (
+    documentInput &&
+    documentInput.files &&
+    documentInput.files.length > 0
+) {
+    documentName =
+        documentInput.files[0].name;
+}
+
+
+                
+
+
+                /* =====================================
+                   CREATE PATIENT OBJECT
+                ===================================== */
+
+                const patient = {
+
+                    id:
+                        Date.now().toString(),
+
+                    username:
+                        localStorage.getItem(
+                            "loggedInUser"
+                        ) ||
+                        "Guest",
+
+                    name:
+                        name,
+
+                    age:
+                        age,
+
+                    gender:
+                        gender,
+
+                    complaint:
+                        complaint,
+
+                    duration:
+                        duration,
+
+                    symptoms:
+                        symptoms,
+
+                    history:
+                        history,
+
+                    allergies:
+                        allergies,
+
+                    medicines:
+                        medicines,
+
+
+                    /* ADAPTIVE */
+
+                    adaptiveAnswers:
+                        window.adaptivePatientAnswers ||
+                        {},
+
+
+                    /* OCR */
+
+                    ocrText:
+                        ocrText,
+
+
+                    /* AI */
+
+                    extractedMedicalInformation:
+                        extractedMedicalInformation,
+
+
+                    /* DOCUMENT */
+
+                    documentName:
+                        documentName,
+                    
+
+                    hasDocument:
+                        documentName !== "",
+
+
+                    /* DATE */
+
+                    date:
+                        new Date()
+                            .toLocaleString(),
+
+
+                    language:
+                        language
+
+                };
+
+
+                /* =====================================
+                   GET OLD PATIENTS
+                ===================================== */
+
+                let patients = [];
+
+
+                const oldData =
+                    localStorage.getItem(
+                        "patients"
+                    );
+
+
+                if (oldData) {
+
+                    try {
+
+                        patients =
+                            JSON.parse(
+                                oldData
+                            );
+
+
+                        if (
+                            !Array.isArray(
+                                patients
+                            )
+                        ) {
+
+                            patients = [];
+
+                        }
+
+                    }
+
+                    catch (error) {
+
+                        console.log(
+                            "Old patient data invalid."
+                        );
+
+                        patients = [];
+
+                    }
+
+                }
+
+
+                /* =====================================
+                   ADD NEW PATIENT
+                ===================================== */
+
+                patients.unshift(
+                    patient
+                );
+
+
+                /* =====================================
+                   SAVE PATIENTS
+                ===================================== */
+                
+                localStorage.setItem(
+                    "patients",
+                    JSON.stringify(
+                        patients
+                    )
+                );
+
+
+                /* =====================================
+                   SAVE CURRENT PATIENT
+                ===================================== */
+
+                localStorage.setItem(
+                    "currentPatient",
+                    JSON.stringify(
+                        patient
+                    )
+                );
+
+
+                /* =====================================
+                   VERIFY
+                ===================================== */
+
+                const verify =
+                    localStorage.getItem(
+                        "currentPatient"
+                    );
+
+
+                if (!verify) {
+
+                    throw new Error(
+                        "Patient could not be saved."
+                    );
+
+                }
+
+
+                /* =====================================
+                   SUCCESS
+                ===================================== */
+
+                alert(
+                    "✅ Complete patient case saved successfully!"
+                );
+
+
+                /* =====================================
+                   SUMMARY PAGE
+                ===================================== */
+
+                window.location.href =
+                    "summary.html?lang=" +
+                    encodeURIComponent(
+                        language
+                    );
+
+            }
+
+            catch (error) {
+
+                console.error(
+                    "SAVE ERROR:",
+                    error
+                );
+
+
+                saveButton.disabled =
+                    false;
+
+
+                saveButton.innerText =
+                    "💾 Save Case";
+
+
+                alert(
+                    "❌ Case could not be saved. Please try again."
+                );
+
+            }
+
+        }
+    );
+
+</script>
+
+</body>
+
+</html>

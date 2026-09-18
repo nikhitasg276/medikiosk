@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>MediKiosk - Doctor AYUSH View</title>
+
+    <link rel="stylesheet" href="style.css">
+
+    <style>
+        .doctor-container {
+            width: 90%;
+            max-width: 900px;
+            margin: 20px auto;
+        }
+
+        .patient-card {
+            background: white;
+            padding: 25px;
+            margin: 20px 0;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.12);
+            text-align: left;
+        }
+
+        .patient-header {
+            background: #f1f8e9;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .patient-header h2 {
+            margin-top: 0;
+        }
+
+        .system {
+            font-size: 18px;
+            font-weight: bold;
+            margin-top: 8px;
+        }
+
+        .answer-box {
+            background: #f7f7f7;
+            padding: 15px;
+            margin: 12px 0;
+            border-radius: 10px;
+            border-left: 4px solid #4caf50;
+        }
+
+        .question {
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .answer {
+            margin: 0;
+        }
+
+        .no-data {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin-top: 25px;
+        }
+
+        .back-btn {
+            margin-top: 15px;
+        }
+
+        .print-btn {
+            margin-top: 10px;
+        }
+
+        @media print {
+            button {
+                display: none;
+            }
+
+            .home-container {
+                box-shadow: none;
+            }
+        }
+    </style>
+
+</head>
+
+<body>
+
+<div class="home-container">
+
+    <div class="logo">🌿</div>
+
+    <h1 id="title">
+        Doctor - AYUSH Patient History
+    </h1>
+
+    <p id="subtitle">
+        View patient's AYUSH health history
+    </p>
+
+
+    <div class="doctor-container">
+
+        <div id="historyContainer"></div>
+
+    </div>
+
+
+    <button onclick="window.print()" id="printBtn" class="print-btn">
+        🖨️ Print History
+    </button>
+
+
+    <button onclick="goBack()" id="backBtn" class="back-btn">
+        ⬅️ Back to Doctor Dashboard
+    </button>
+
+</div>
+
+
+<script>
+
+/* =====================================================
+   LANGUAGE
+===================================================== */
+
+const params =
+    new URLSearchParams(window.location.search);
+
+const language =
+    params.get("lang") || "en";
+
+
+/* =====================================================
+   TEXT
+===================================================== */
+
+const texts = {
+
+    en: {
+
+        title:
+            "Doctor - AYUSH Patient History",
+
+        subtitle:
+            "View patient's AYUSH health history",
+
+        print:
+            "🖨️ Print History",
+
+        back:
+            "⬅️ Back to Doctor Dashboard",
+
+        patient:
+            "Patient",
+
+        system:
+            "AYUSH System",
+
+        date:
+            "Date",
+
+        noData:
+            "No AYUSH patient history available.",
+
+        question:
+            "Question",
+
+        answer:
+            "Answer"
+
+    },
+
+    kn: {
+
+        title:
+            "ವೈದ್ಯರು - ಆಯುಷ್ ರೋಗಿಯ ಇತಿಹಾಸ",
+
+        subtitle:
+            "ರೋಗಿಯ ಆಯುಷ್ ಆರೋಗ್ಯ ಇತಿಹಾಸವನ್ನು ವೀಕ್ಷಿಸಿ",
+
+        print:
+            "🖨️ ಇತಿಹಾಸವನ್ನು ಮುದ್ರಿಸಿ",
+
+        back:
+            "⬅️ ವೈದ್ಯರ ಡ್ಯಾಶ್‌ಬೋರ್ಡ್‌ಗೆ ಹಿಂತಿರುಗಿ",
+
+        patient:
+            "ರೋಗಿ",
+
+        system:
+            "ಆಯುಷ್ ಪದ್ಧತಿ",
+
+        date:
+            "ದಿನಾಂಕ",
+
+        noData:
+            "ಯಾವುದೇ ಆಯುಷ್ ರೋಗಿಯ ಇತಿಹಾಸ ಲಭ್ಯವಿಲ್ಲ.",
+
+        question:
+            "ಪ್ರಶ್ನೆ",
+
+        answer:
+            "ಉತ್ತರ"
+
+    },
+
+    hi: {
+
+        title:
+            "डॉक्टर - आयुष मरीज का इतिहास",
+
+        subtitle:
+            "मरीज का आयुष स्वास्थ्य इतिहास देखें",
+
+        print:
+            "🖨️ इतिहास प्रिंट करें",
+
+        back:
+            "⬅️ डॉक्टर डैशबोर्ड पर वापस जाएं",
+
+        patient:
+            "मरीज",
+
+        system:
+            "आयुष पद्धति",
+
+        date:
+            "तारीख",
+
+        noData:
+            "कोई आयुष मरीज का इतिहास उपलब्ध नहीं है।",
+
+        question:
+            "प्रश्न",
+
+        answer:
+            "उत्तर"
+
+    }
+
+};
+
+
+const t =
+    texts[language] || texts.en;
+
+
+/* =====================================================
+   APPLY LANGUAGE
+===================================================== */
+
+document.getElementById("title")
+    .innerText = t.title;
+
+document.getElementById("subtitle")
+    .innerText = t.subtitle;
+
+document.getElementById("printBtn")
+    .innerText = t.print;
+
+document.getElementById("backBtn")
+    .innerText = t.back;
+
+
+/* =====================================================
+   GET AYUSH HISTORY
+===================================================== */
+
+let ayushHistory = [];
+
+
+try {
+
+    ayushHistory =
+        JSON.parse(
+            localStorage.getItem("ayushHistory") || "[]"
+        );
+
+}
+catch(error) {
+
+    console.error(
+        "AYUSH history error:",
+        error
+    );
+
+    ayushHistory = [];
+
+}
+
+
+/* =====================================================
+   DISPLAY
+===================================================== */
+
+const container =
+    document.getElementById(
+        "historyContainer"
+    );
+
+
+if (ayushHistory.length === 0) {
+
+    container.innerHTML = `
+
+        <div class="no-data">
+
+            <h2>🌿</h2>
+
+            <p>
+                ${t.noData}
+            </p>
+
+        </div>
+
+    `;
+
+}
+
+
+/* =====================================================
+   SHOW PATIENT HISTORY
+===================================================== */
+
+else {
+
+    ayushHistory.forEach(function(patient) {
+
+        const card =
+            document.createElement("div");
+
+        card.className =
+            "patient-card";
+
+
+        let answersHTML = "";
+
+
+        if (
+            patient.answers &&
+            patient.answers.length > 0
+        ) {
+
+            answersHTML =
+                patient.answers.map(
+                    function(item) {
+
+                        return `
+
+                            <div class="answer-box">
+
+                                <div class="question">
+                                    ❓ ${escapeHTML(
+                                        item.question
+                                    )}
+                                </div>
+
+                                <p class="answer">
+                                    💬 ${escapeHTML(
+                                        item.answer
+                                    )}
+                                </p>
+
+                            </div>
+
+                        `;
+
+                    }
+                ).join("");
+
+        }
+
+
+        card.innerHTML = `
+
+            <div class="patient-header">
+
+                <h2>
+                    👤 ${t.patient}:
+                    ${escapeHTML(
+                        patient.username || "Unknown"
+                    )}
+                </h2>
+
+                <div class="system">
+                    🌿 ${t.system}:
+                    ${escapeHTML(
+                        patient.system || "Not provided"
+                    )}
+                </div>
+
+                <div>
+                    📅 ${t.date}:
+                    ${escapeHTML(
+                        patient.date || "Not provided"
+                    )}
+                </div>
+
+            </div>
+
+
+            <h3>
+                📋 AYUSH Consultation
+            </h3>
+
+
+            ${answersHTML}
+
+        `;
+
+
+        container.appendChild(card);
+
+    });
+
+}
+
+
+/* =====================================================
+   ESCAPE HTML
+===================================================== */
+
+function escapeHTML(value) {
+
+    return String(value)
+
+        .replace(/&/g, "&amp;")
+
+        .replace(/</g, "&lt;")
+
+        .replace(/>/g, "&gt;")
+
+        .replace(/"/g, "&quot;")
+
+        .replace(/'/g, "&#039;");
+
+}
+
+
+/* =====================================================
+   BACK
+===================================================== */
+
+function goBack() {
+
+    window.location.href =
+        "doctor-dashboard.html?role=doctor&lang=" +
+        encodeURIComponent(language);
+
+}
+
+</script>
+
+</body>
+
+</html>

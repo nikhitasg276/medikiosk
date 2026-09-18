@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>MediKiosk - ABDM Integration</title>
+
+    <link rel="stylesheet" href="style.css">
+
+    <style>
+
+        .abdm-container {
+            width: 90%;
+            max-width: 800px;
+            margin: 20px auto;
+        }
+
+        .card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.12);
+            margin-top: 20px;
+            text-align: left;
+        }
+
+        .abdm-logo {
+            font-size: 55px;
+            text-align: center;
+        }
+
+        .step {
+            padding: 15px;
+            margin: 12px 0;
+            border-radius: 10px;
+            background: #f5f5f5;
+        }
+
+        .success {
+            background: #e8f5e9;
+            color: #2e7d32;
+            font-weight: bold;
+        }
+
+        .info {
+            background: #eef5ff;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        #status {
+            margin-top: 20px;
+            font-weight: bold;
+            text-align: center;
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+<div class="home-container">
+
+    <div class="logo">🇮🇳</div>
+
+    <h1 id="title">
+        ABDM Integration
+    </h1>
+
+    <p id="subtitle">
+        Digital health record integration
+    </p>
+
+
+    <div class="abdm-container">
+
+
+        <!-- ABDM INFORMATION -->
+
+        <div class="card">
+
+            <div class="abdm-logo">
+                🏥
+            </div>
+
+            <h2 id="heading">
+                Ayushman Bharat Digital Mission
+            </h2>
+
+            <p id="description">
+                MediKiosk demonstrates secure digital health
+                information sharing with ABDM.
+            </p>
+
+
+            <div class="info">
+
+                <strong id="privacyTitle">
+                    🔒 Patient Consent & Privacy
+                </strong>
+
+                <p id="privacyText">
+                    Patient information is shared only with
+                    patient consent.
+                </p>
+
+            </div>
+
+
+            <br>
+
+
+            <button
+                onclick="connectABDM()"
+                id="connectBtn">
+
+                🔗 Connect to ABDM
+
+            </button>
+
+
+            <div id="status"></div>
+
+        </div>
+
+
+
+        <!-- PATIENT RECORD -->
+
+        <div
+            id="recordCard"
+            class="card hidden">
+
+            <h2 id="recordTitle">
+                📋 Patient Health Record
+            </h2>
+
+
+            <div class="step success">
+
+                ✅ <span id="connectedText">
+                    ABDM connection successful (Demo)
+                </span>
+
+            </div>
+
+
+            <div class="step">
+
+                👤 <strong id="patientLabel">
+                    Patient:
+                </strong>
+
+                <span id="patientName">
+                    -
+                </span>
+
+            </div>
+
+
+            <div class="step">
+
+                🩺 <strong id="recordLabel">
+                    Medical information:
+                </strong>
+
+                <span id="recordText">
+                    Available in MediKiosk
+                </span>
+
+            </div>
+
+
+            <br>
+
+
+            <button
+                onclick="shareRecord()"
+                id="shareBtn">
+
+                📤 Share Patient Record
+
+            </button>
+
+
+            <div
+                id="shareStatus"
+                class="status">
+            </div>
+
+        </div>
+
+
+
+        <br>
+
+
+        <button
+            onclick="goBack()"
+            id="backBtn">
+
+            ⬅️ Back to Doctor Dashboard
+
+        </button>
+
+
+    </div>
+
+</div>
+
+
+
+<script>
+
+
+/* =====================================================
+   LANGUAGE
+===================================================== */
+
+const params =
+    new URLSearchParams(window.location.search);
+
+const language =
+    params.get("lang") || "en";
+
+
+/* =====================================================
+   LOGGED-IN USER
+===================================================== */
+
+const loggedInUser =
+    localStorage.getItem("loggedInUser") || "Patient";
+
+
+document.getElementById("patientName")
+    .innerText = loggedInUser;
+
+
+
+/* =====================================================
+   LANGUAGE TEXT
+===================================================== */
+
+const text = {
+
+    en: {
+
+        title:
+            "ABDM Integration",
+
+        subtitle:
+            "Digital health record integration",
+
+        heading:
+            "Ayushman Bharat Digital Mission",
+
+        description:
+            "MediKiosk demonstrates secure digital health information sharing with ABDM.",
+
+        privacyTitle:
+            "🔒 Patient Consent & Privacy",
+
+        privacyText:
+            "Patient information is shared only with patient consent.",
+
+        connect:
+            "🔗 Connect to ABDM",
+
+        connected:
+            "ABDM connection successful (Demo)",
+
+        recordTitle:
+            "📋 Patient Health Record",
+
+        patient:
+            "Patient:",
+
+        medical:
+            "Medical information:",
+
+        available:
+            "Available in MediKiosk",
+
+        share:
+            "📤 Share Patient Record",
+
+        shared:
+            "✅ Patient information successfully shared with ABDM (Demo).",
+
+        back:
+            "⬅️ Back to Doctor Dashboard"
+
+    },
+
+
+    kn: {
+
+        title:
+            "ABDM ಏಕೀಕರಣ",
+
+        subtitle:
+            "ಡಿಜಿಟಲ್ ಆರೋಗ್ಯ ದಾಖಲೆ ಏಕೀಕರಣ",
+
+        heading:
+            "ಆಯುಷ್ಮಾನ್ ಭಾರತ್ ಡಿಜಿಟಲ್ ಮಿಷನ್",
+
+        description:
+            "MediKiosk ಮೂಲಕ ಸುರಕ್ಷಿತ ಡಿಜಿಟಲ್ ಆರೋಗ್ಯ ಮಾಹಿತಿಯನ್ನು ABDM ಗೆ ಹಂಚಿಕೊಳ್ಳುವ ಪ್ರಕ್ರಿಯೆಯ ಡೆಮೊ.",
+
+        privacyTitle:
+            "🔒 ರೋಗಿಯ ಅನುಮತಿ ಮತ್ತು ಗೌಪ್ಯತೆ",
+
+        privacyText:
+            "ರೋಗಿಯ ಅನುಮತಿಯೊಂದಿಗೆ ಮಾತ್ರ ಆರೋಗ್ಯ ಮಾಹಿತಿಯನ್ನು ಹಂಚಿಕೊಳ್ಳಲಾಗುತ್ತದೆ.",
+
+        connect:
+            "🔗 ABDM ಗೆ ಸಂಪರ್ಕಿಸಿ",
+
+        connected:
+            "ABDM ಸಂಪರ್ಕ ಯಶಸ್ವಿಯಾಗಿದೆ (ಡೆಮೊ)",
+
+        recordTitle:
+            "📋 ರೋಗಿಯ ಆರೋಗ್ಯ ದಾಖಲೆ",
+
+        patient:
+            "ರೋಗಿ:",
+
+        medical:
+            "ವೈದ್ಯಕೀಯ ಮಾಹಿತಿ:",
+
+        available:
+            "MediKiosk ನಲ್ಲಿ ಲಭ್ಯವಿದೆ",
+
+        share:
+            "📤 ರೋಗಿಯ ದಾಖಲೆಯನ್ನು ಹಂಚಿಕೊಳ್ಳಿ",
+
+        shared:
+            "✅ ರೋಗಿಯ ಮಾಹಿತಿ ABDM ಗೆ ಯಶಸ್ವಿಯಾಗಿ ಹಂಚಿಕೊಳ್ಳಲಾಗಿದೆ (ಡೆಮೊ).",
+
+        back:
+            "⬅️ ವೈದ್ಯರ ಡ್ಯಾಶ್‌ಬೋರ್ಡ್‌ಗೆ ಹಿಂತಿರುಗಿ"
+
+    },
+
+
+    hi: {
+
+        title:
+            "ABDM एकीकरण",
+
+        subtitle:
+            "डिजिटल स्वास्थ्य रिकॉर्ड एकीकरण",
+
+        heading:
+            "आयुष्मान भारत डिजिटल मिशन",
+
+        description:
+            "MediKiosk सुरक्षित डिजिटल स्वास्थ्य जानकारी को ABDM के साथ साझा करने की प्रक्रिया दिखाता है।",
+
+        privacyTitle:
+            "🔒 मरीज की सहमति और गोपनीयता",
+
+        privacyText:
+            "मरीज की सहमति के बाद ही स्वास्थ्य जानकारी साझा की जाती है।",
+
+        connect:
+            "🔗 ABDM से कनेक्ट करें",
+
+        connected:
+            "ABDM कनेक्शन सफल हुआ (डेमो)",
+
+        recordTitle:
+            "📋 मरीज का स्वास्थ्य रिकॉर्ड",
+
+        patient:
+            "मरीज:",
+
+        medical:
+            "चिकित्सा जानकारी:",
+
+        available:
+            "MediKiosk में उपलब्ध है",
+
+        share:
+            "📤 मरीज का रिकॉर्ड साझा करें",
+
+        shared:
+            "✅ मरीज की जानकारी ABDM के साथ सफलतापूर्वक साझा की गई (डेमो)।",
+
+        back:
+            "⬅️ डॉक्टर डैशबोर्ड पर वापस जाएं"
+
+    }
+
+};
+
+
+const t =
+    text[language] || text.en;
+
+
+
+/* =====================================================
+   APPLY LANGUAGE
+===================================================== */
+
+document.getElementById("title")
+    .innerText = t.title;
+
+document.getElementById("subtitle")
+    .innerText = t.subtitle;
+
+document.getElementById("heading")
+    .innerText = t.heading;
+
+document.getElementById("description")
+    .innerText = t.description;
+
+document.getElementById("privacyTitle")
+    .innerText = t.privacyTitle;
+
+document.getElementById("privacyText")
+    .innerText = t.privacyText;
+
+document.getElementById("connectBtn")
+    .innerText = t.connect;
+
+document.getElementById("connectedText")
+    .innerText = t.connected;
+
+document.getElementById("recordTitle")
+    .innerText = t.recordTitle;
+
+document.getElementById("patientLabel")
+    .innerText = t.patient;
+
+document.getElementById("recordLabel")
+    .innerText = t.medical;
+
+document.getElementById("recordText")
+    .innerText = t.available;
+
+document.getElementById("shareBtn")
+    .innerText = t.share;
+
+document.getElementById("backBtn")
+    .innerText = t.back;
+
+
+
+/* =====================================================
+   CONNECT ABDM
+===================================================== */
+
+function connectABDM() {
+
+    const status =
+        document.getElementById("status");
+
+    status.innerText =
+        "🔄 Connecting to ABDM...";
+
+
+    setTimeout(function() {
+
+        status.innerText =
+            "✅ " + t.connected;
+
+
+        document.getElementById("recordCard")
+            .classList.remove("hidden");
+
+
+        document.getElementById("connectBtn")
+            .style.display = "none";
+
+
+    }, 1500);
+
+}
+
+
+
+/* =====================================================
+   SHARE PATIENT RECORD
+===================================================== */
+
+function shareRecord() {
+
+    const shareStatus =
+        document.getElementById("shareStatus");
+
+
+    shareStatus.innerText =
+        "📤 Sharing patient information...";
+
+
+    setTimeout(function() {
+
+        shareStatus.innerText =
+            t.shared;
+
+    }, 1200);
+
+}
+
+
+
+/* =====================================================
+   BACK
+===================================================== */
+
+function goBack() {
+
+    window.location.href =
+        "doctor-dashboard.html?lang=" +
+        encodeURIComponent(language);
+
+}
+
+
+</script>
+
+</body>
+
+</html>

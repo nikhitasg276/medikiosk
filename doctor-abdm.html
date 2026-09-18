@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>MediKiosk - ABDM Patient Records</title>
+
+    <link rel="stylesheet" href="style.css">
+
+    <style>
+        .abdm-container {
+            width: 90%;
+            max-width: 800px;
+            margin: 20px auto;
+        }
+
+        .record-card {
+            background: white;
+            padding: 25px;
+            margin: 20px 0;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.12);
+            text-align: left;
+        }
+
+        .status {
+            padding: 12px;
+            border-radius: 10px;
+            font-weight: bold;
+            margin-top: 15px;
+        }
+
+        .allowed {
+            background: #e8f5e9;
+        }
+
+        .denied {
+            background: #ffebee;
+        }
+
+        .empty {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            margin-top: 25px;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="home-container">
+
+    <div class="logo">🇮🇳</div>
+
+    <h1 id="title">
+        ABDM Patient Records
+    </h1>
+
+    <p id="subtitle">
+        View patient health-record sharing consent
+    </p>
+
+    <div id="recordsContainer"
+         class="abdm-container">
+    </div>
+
+    <br>
+
+    <button onclick="goBack()" id="backBtn">
+        ⬅️ Back to Doctor Dashboard
+    </button>
+
+</div>
+
+
+<script>
+
+/* =====================================================
+   LANGUAGE
+===================================================== */
+
+const params =
+    new URLSearchParams(window.location.search);
+
+const language =
+    params.get("lang") || "en";
+
+
+/* =====================================================
+   TEXT
+===================================================== */
+
+const texts = {
+
+    en: {
+
+        title:
+            "ABDM Patient Records",
+
+        subtitle:
+            "View patient health-record sharing consent",
+
+        allowed:
+            "✅ Consent Allowed",
+
+        denied:
+            "❌ Consent Not Allowed",
+
+        noPatients:
+            "No patient records found.",
+
+        patient:
+            "Patient",
+
+        access:
+            "Doctor/Authorized hospital can access records",
+
+        noAccess:
+            "Doctor cannot access records",
+
+        demo:
+            "Demo ABDM Integration",
+
+        back:
+            "⬅️ Back to Doctor Dashboard"
+
+    },
+
+    kn: {
+
+        title:
+            "ABDM ರೋಗಿಯ ದಾಖಲೆಗಳು",
+
+        subtitle:
+            "ರೋಗಿಯ ಆರೋಗ್ಯ ದಾಖಲೆ ಹಂಚಿಕೆ ಅನುಮತಿಯನ್ನು ವೀಕ್ಷಿಸಿ",
+
+        allowed:
+            "✅ ಅನುಮತಿ ನೀಡಲಾಗಿದೆ",
+
+        denied:
+            "❌ ಅನುಮತಿ ನೀಡಲಾಗಿಲ್ಲ",
+
+        noPatients:
+            "ಯಾವುದೇ ರೋಗಿಯ ದಾಖಲೆಗಳು ಕಂಡುಬಂದಿಲ್ಲ.",
+
+        patient:
+            "ರೋಗಿ",
+
+        access:
+            "ವೈದ್ಯರು / ಅಧಿಕೃತ ಆಸ್ಪತ್ರೆ ದಾಖಲೆಗಳನ್ನು ನೋಡಬಹುದು",
+
+        noAccess:
+            "ವೈದ್ಯರು ದಾಖಲೆಗಳನ್ನು ನೋಡಲು ಸಾಧ್ಯವಿಲ್ಲ",
+
+        demo:
+            "ಡೆಮೊ ABDM ಏಕೀಕರಣ",
+
+        back:
+            "⬅️ ವೈದ್ಯರ ಡ್ಯಾಶ್‌ಬೋರ್ಡ್‌ಗೆ ಹಿಂತಿರುಗಿ"
+
+    },
+
+    hi: {
+
+        title:
+            "ABDM मरीज रिकॉर्ड",
+
+        subtitle:
+            "मरीज के स्वास्थ्य रिकॉर्ड साझा करने की अनुमति देखें",
+
+        allowed:
+            "✅ अनुमति दी गई है",
+
+        denied:
+            "❌ अनुमति नहीं दी गई है",
+
+        noPatients:
+            "कोई मरीज रिकॉर्ड नहीं मिला।",
+
+        patient:
+            "मरीज",
+
+        access:
+            "डॉक्टर / अधिकृत अस्पताल रिकॉर्ड देख सकता है",
+
+        noAccess:
+            "डॉक्टर रिकॉर्ड नहीं देख सकता",
+
+        demo:
+            "डेमो ABDM एकीकरण",
+
+        back:
+            "⬅️ डॉक्टर डैशबोर्ड पर वापस जाएं"
+
+    }
+
+};
+
+
+const t =
+    texts[language] || texts.en;
+
+
+/* =====================================================
+   APPLY LANGUAGE
+===================================================== */
+
+document.getElementById("title")
+    .innerText = t.title;
+
+document.getElementById("subtitle")
+    .innerText = t.subtitle;
+
+document.getElementById("backBtn")
+    .innerText = t.back;
+
+
+/* =====================================================
+   GET PATIENTS
+===================================================== */
+
+let patients = [];
+
+try {
+
+    patients =
+        JSON.parse(
+            localStorage.getItem("patients") || "[]"
+        );
+
+}
+catch(error) {
+
+    patients = [];
+
+}
+
+
+/* =====================================================
+   DISPLAY
+===================================================== */
+
+const container =
+    document.getElementById(
+        "recordsContainer"
+    );
+
+
+if (patients.length === 0) {
+
+    container.innerHTML = `
+
+        <div class="empty">
+
+            <h2>📋</h2>
+
+            <p>
+                ${t.noPatients}
+            </p>
+
+        </div>
+
+    `;
+
+}
+else {
+
+    patients.forEach(function(patient) {
+
+        const username =
+            patient.username || "";
+
+        const consent =
+            localStorage.getItem(
+                "abdmConsent_" + username
+            );
+
+
+        const card =
+            document.createElement("div");
+
+        card.className =
+            "record-card";
+
+
+        let statusHTML = "";
+
+
+        if (consent === "true") {
+
+            statusHTML = `
+
+                <div class="status allowed">
+
+                    ${t.allowed}
+
+                    <br>
+
+                    <small>
+                        ${t.access}
+                    </small>
+
+                </div>
+
+            `;
+
+        }
+
+        else {
+
+            statusHTML = `
+
+                <div class="status denied">
+
+                    ${t.denied}
+
+                    <br>
+
+                    <small>
+                        ${t.noAccess}
+                    </small>
+
+                </div>
+
+            `;
+
+        }
+
+
+        card.innerHTML = `
+
+            <h2>
+                👤 ${t.patient}
+            </h2>
+
+            <p>
+                <strong>Username:</strong>
+                ${escapeHTML(username)}
+            </p>
+
+            <p>
+                <strong>Name:</strong>
+                ${escapeHTML(
+                    patient.name || "Not provided"
+                )}
+            </p>
+
+            ${statusHTML}
+
+            <p>
+                🇮🇳 ${t.demo}
+            </p>
+
+        `;
+
+
+        container.appendChild(card);
+
+    });
+
+}
+
+
+/* =====================================================
+   ESCAPE HTML
+===================================================== */
+
+function escapeHTML(value) {
+
+    return String(value)
+
+        .replace(/&/g, "&amp;")
+
+        .replace(/</g, "&lt;")
+
+        .replace(/>/g, "&gt;")
+
+        .replace(/"/g, "&quot;")
+
+        .replace(/'/g, "&#039;");
+
+}
+
+
+/* =====================================================
+   BACK
+===================================================== */
+
+function goBack() {
+
+    window.location.href =
+        "doctor-dashboard.html?role=doctor&lang=" +
+        encodeURIComponent(language);
+
+}
+
+</script>
+
+</body>
+
+</html>

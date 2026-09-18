@@ -1,0 +1,1147 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>MediKiosk - Clinical Summary</title>
+
+    <link rel="stylesheet" href="style.css">
+
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #eef7ff;
+        }
+
+        .summary-container {
+            width: 90%;
+            max-width: 850px;
+            margin: 30px auto;
+            background: white;
+            padding: 35px;
+            border-radius: 20px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #555;
+            margin-bottom: 30px;
+        }
+
+        .section {
+            margin-top: 25px;
+            padding: 20px;
+            border-radius: 15px;
+            background: #f7fbff;
+            border: 1px solid #d7e9f7;
+        }
+
+        .section h2 {
+            margin-top: 0;
+            color: #1976d2;
+        }
+
+        .info-row {
+            padding: 10px 0;
+            border-bottom: 1px solid #ddd;
+            font-size: 17px;
+            line-height: 1.5;
+        }
+
+        .info-row:last-child {
+            border-bottom: none;
+        }
+
+        .info-row strong {
+            display: inline-block;
+            min-width: 180px;
+        }
+
+        .ocr-box {
+            background: white;
+            border: 2px solid #4caf50;
+            padding: 15px;
+            border-radius: 10px;
+            white-space: pre-wrap;
+            line-height: 1.6;
+            min-height: 40px;
+        }
+
+        .medical-item {
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+            line-height: 1.5;
+        }
+
+        .medical-item:last-child {
+            border-bottom: none;
+        }
+
+        .warning {
+            margin-top: 15px;
+            padding: 12px;
+            background: #fff8e1;
+            border-radius: 10px;
+            color: #7a5b00;
+            line-height: 1.5;
+        }
+
+        .buttons {
+            text-align: center;
+            margin-top: 30px;
+        }
+
+        button {
+            padding: 14px 28px;
+            border: none;
+            border-radius: 10px;
+            font-size: 17px;
+            cursor: pointer;
+            margin: 8px;
+        }
+
+        #doctorBtn {
+            background: #1976d2;
+            color: white;
+        }
+
+        #historyBtn {
+            background: #555;
+            color: white;
+        }
+
+        #printBtn {
+            background: #4caf50;
+            color: white;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        .empty {
+            color: #777;
+            font-style: italic;
+        }
+
+        /* Uploaded document image */
+        .document-preview {
+            width: 100%;
+            max-height: 600px;
+            object-fit: contain;
+            border-radius: 12px;
+            border: 2px solid #ddd;
+            background: white;
+            margin-top: 15px;
+        }
+
+        .document-name {
+            font-weight: bold;
+            color: #1976d2;
+            word-break: break-word;
+        }
+
+        /* Adaptive answers */
+        .adaptive-box {
+            background: #fff8ff;
+            border: 2px solid #9c27b0;
+        }
+
+        .adaptive-box h2 {
+            color: #9c27b0;
+        }
+
+        @media print {
+
+            body {
+                background: white;
+            }
+
+            .buttons {
+                display: none;
+            }
+
+            .summary-container {
+                box-shadow: none;
+                width: 100%;
+                margin: 0;
+            }
+
+            .document-preview {
+                max-height: none;
+            }
+        }
+    </style>
+</head>
+
+
+<body>
+
+<div class="summary-container">
+
+    <!-- HEADER -->
+
+    <div style="text-align:center; font-size:45px;">
+        🩺
+    </div>
+
+    <h1>
+        Clinical History Summary
+    </h1>
+
+    <p class="subtitle">
+        Patient information collected by MediKiosk
+    </p>
+
+
+    <!-- =========================================
+         PATIENT INFORMATION
+    ========================================== -->
+
+    <div class="section">
+
+        <h2>👤 Patient Information</h2>
+
+        <div class="info-row">
+            <strong>Patient Name:</strong>
+            <span id="name"></span>
+        </div>
+
+        <div class="info-row">
+            <strong>Age:</strong>
+            <span id="age"></span>
+        </div>
+
+        <div class="info-row">
+            <strong>Gender:</strong>
+            <span id="gender"></span>
+        </div>
+
+    </div>
+
+
+    <!-- =========================================
+         CASE DETAILS
+    ========================================== -->
+
+    <div class="section">
+
+        <h2>🏥 Case Details</h2>
+
+        <div class="info-row">
+            <strong>Main Problem:</strong>
+            <span id="complaint"></span>
+        </div>
+
+        <div class="info-row">
+            <strong>Duration:</strong>
+            <span id="duration"></span>
+        </div>
+
+        <div class="info-row">
+            <strong>Symptoms:</strong>
+            <span id="symptoms"></span>
+        </div>
+
+        <div class="info-row">
+            <strong>Medical History:</strong>
+            <span id="history"></span>
+        </div>
+
+        <div class="info-row">
+            <strong>Allergies:</strong>
+            <span id="allergies"></span>
+        </div>
+
+        <div class="info-row">
+            <strong>Current Medicines:</strong>
+            <span id="medicines"></span>
+        </div>
+
+    </div>
+
+
+    <!-- =========================================
+         ADAPTIVE AI ANSWERS
+    ========================================== -->
+
+    <div
+        class="section adaptive-box"
+        id="adaptiveSection"
+        style="display:none;"
+    >
+
+        <h2>🧠 Adaptive Clinical Questions</h2>
+
+        <div id="adaptiveContent"></div>
+
+    </div>
+
+
+    <!-- =========================================
+         UPLOADED DOCUMENT
+    ========================================== -->
+
+    <div
+        class="section"
+        id="documentSection"
+    >
+
+        <h2>📎 Uploaded Medical Document</h2>
+
+        <div class="info-row">
+
+            <strong>File Name:</strong>
+
+            <span
+                id="documentName"
+                class="document-name"
+            >
+            </span>
+
+        </div>
+
+        <!-- IMAGE WILL APPEAR HERE -->
+
+        <div id="documentPreviewContainer">
+        </div>
+
+    </div>
+
+
+    <!-- =========================================
+         OCR REPORT
+    ========================================== -->
+
+    <div
+        class="section"
+        id="ocrSection"
+    >
+
+        <h2>🔎 Medical Document OCR</h2>
+
+        <div
+            id="ocrContent"
+            class="ocr-box"
+        >
+        </div>
+
+    </div>
+
+
+    <!-- =========================================
+         AI EXTRACTED INFORMATION
+    ========================================== -->
+
+    <div
+        class="section"
+        id="aiSection"
+    >
+
+        <h2>🤖 AI Extracted Medical Information</h2>
+
+        <div id="aiContent">
+        </div>
+
+    </div>
+
+
+    <!-- =========================================
+         CASE INFORMATION
+    ========================================== -->
+
+    <div class="section">
+
+        <h2>🕒 Case Information</h2>
+
+        <div class="info-row">
+
+            <strong>Saved On:</strong>
+
+            <span id="date"></span>
+
+        </div>
+
+        <div class="info-row">
+
+            <strong>Language:</strong>
+
+            <span id="language"></span>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================================
+         WARNING
+    ========================================== -->
+
+    <div class="warning">
+
+        ⚠️ This summary is collected from the
+        patient's information and uploaded documents.
+        It is not a diagnosis. A doctor should verify
+        the information.
+
+    </div>
+
+
+    <!-- =========================================
+         BUTTONS
+    ========================================== -->
+
+    <div class="buttons">
+
+        <button
+            id="doctorBtn"
+            onclick="sendToDoctor()"
+        >
+            👨‍⚕️ Send to Doctor
+        </button>
+
+        <button
+            id="printBtn"
+            onclick="window.print()"
+        >
+            🖨️ Print Report
+        </button>
+
+        <button
+            id="historyBtn"
+            onclick="goToHistory()"
+        >
+            📋 View History
+        </button>
+
+    </div>
+
+</div>
+
+
+<script>
+
+/* =========================================
+   GET CURRENT PATIENT
+========================================= */
+
+let patientData = null;
+
+try {
+
+    patientData = JSON.parse(
+        localStorage.getItem("currentPatient")
+    );
+
+}
+catch (error) {
+
+    patientData = null;
+
+}
+
+
+/* =========================================
+   CHECK PATIENT
+========================================= */
+
+if (!patientData) {
+
+    alert("No patient case found.");
+
+    window.location.href =
+        "index.html";
+
+}
+
+
+/* =========================================
+   HELPER FUNCTION
+========================================= */
+
+function show(id, value) {
+
+    const element =
+        document.getElementById(id);
+
+    if (!element) return;
+
+    if (
+        value !== undefined &&
+        value !== null &&
+        String(value).trim() !== ""
+    ) {
+
+        element.innerText =
+            value;
+
+    }
+    else {
+
+        element.innerText =
+            "Not provided";
+
+    }
+
+}
+
+
+/* =========================================
+   PATIENT INFORMATION
+========================================= */
+
+show(
+    "name",
+    patientData.name
+);
+
+show(
+    "age",
+    patientData.age
+);
+
+show(
+    "gender",
+    patientData.gender
+);
+
+
+/* =========================================
+   CASE DETAILS
+========================================= */
+
+show(
+    "complaint",
+    patientData.complaint
+);
+
+show(
+    "duration",
+    patientData.duration
+);
+
+show(
+    "symptoms",
+    patientData.symptoms
+);
+
+show(
+    "history",
+    patientData.history
+);
+
+show(
+    "allergies",
+    patientData.allergies
+);
+
+show(
+    "medicines",
+    patientData.medicines
+);
+
+
+/* =========================================
+   LANGUAGE
+========================================= */
+
+const languageNames = {
+
+    en: "English",
+
+    kn: "Kannada",
+
+    hi: "Hindi"
+
+};
+
+show(
+    "language",
+    languageNames[patientData.language]
+    || patientData.language
+    || "English"
+);
+
+
+/* =========================================
+   DATE
+========================================= */
+
+show(
+    "date",
+    patientData.date
+);
+
+
+/* =========================================
+   ADAPTIVE ANSWERS
+========================================= */
+
+const adaptiveSection =
+    document.getElementById(
+        "adaptiveSection"
+    );
+
+const adaptiveContent =
+    document.getElementById(
+        "adaptiveContent"
+    );
+
+const adaptiveAnswers =
+    patientData.adaptiveAnswers || {};
+
+const adaptiveKeys =
+    Object.keys(adaptiveAnswers);
+
+
+if (adaptiveKeys.length > 0) {
+
+    adaptiveSection.style.display =
+        "block";
+
+    let html = "";
+
+    adaptiveKeys.forEach(
+        function(key) {
+
+            html += `
+                <div class="medical-item">
+
+                    <strong>
+                        ${escapeHTML(
+                            formatAdaptiveLabel(key)
+                        )}:
+                    </strong>
+
+                    ${escapeHTML(
+                        adaptiveAnswers[key]
+                    )}
+
+                </div>
+            `;
+
+        }
+    );
+
+    adaptiveContent.innerHTML =
+        html;
+
+}
+else {
+
+    adaptiveSection.style.display =
+        "none";
+
+}
+
+
+/* =========================================
+   UPLOADED DOCUMENT
+========================================= */
+
+const documentName =
+    document.getElementById(
+        "documentName"
+    );
+
+const documentPreviewContainer =
+    document.getElementById(
+        "documentPreviewContainer"
+    );
+
+const documentSection =
+    document.getElementById(
+        "documentSection"
+    );
+
+
+if (
+    patientData.hasDocument &&
+    patientData.documentData
+) {
+
+    documentName.innerText =
+        patientData.documentName
+        || "Uploaded medical document";
+
+
+    /*
+       SHOW UPLOADED IMAGE
+    */
+
+    const image =
+        document.createElement("img");
+
+    image.src =
+        patientData.documentData;
+
+    image.className =
+        "document-preview";
+
+    image.alt =
+        "Uploaded medical document";
+
+
+    documentPreviewContainer.appendChild(
+        image
+    );
+
+}
+else {
+
+    documentName.innerText =
+        "No document uploaded.";
+
+    documentPreviewContainer.innerHTML =
+        `
+        <p class="empty">
+            No previous medical document was uploaded.
+        </p>
+        `;
+
+}
+
+
+/* =========================================
+   OCR REPORT
+========================================= */
+
+const ocrContent =
+    document.getElementById(
+        "ocrContent"
+    );
+
+
+if (
+    patientData.ocrText &&
+    patientData.ocrText.trim() !== ""
+) {
+
+    ocrContent.innerText =
+        patientData.ocrText;
+
+}
+else {
+
+    ocrContent.innerText =
+        "No OCR text was extracted.";
+
+}
+
+
+/* =========================================
+   AI EXTRACTED INFORMATION
+========================================= */
+
+const aiContent =
+    document.getElementById(
+        "aiContent"
+    );
+
+const information =
+    patientData.extractedMedicalInformation;
+
+
+if (
+    information &&
+    typeof information === "object"
+) {
+
+    let html = "";
+
+
+    /* PATIENT NAME */
+
+    if (information.patientName) {
+
+        html += `
+            <div class="medical-item">
+
+                <strong>
+                    👤 Patient Name:
+                </strong>
+
+                ${escapeHTML(
+                    information.patientName
+                )}
+
+            </div>
+        `;
+
+    }
+
+
+    /* DATE */
+
+    if (information.date) {
+
+        html += `
+            <div class="medical-item">
+
+                <strong>
+                    📅 Report Date:
+                </strong>
+
+                ${escapeHTML(
+                    information.date
+                )}
+
+            </div>
+        `;
+
+    }
+
+
+    /* AGE */
+
+    if (information.age) {
+
+        html += `
+            <div class="medical-item">
+
+                <strong>
+                    🎂 Age:
+                </strong>
+
+                ${escapeHTML(
+                    information.age
+                )}
+
+            </div>
+        `;
+
+    }
+
+
+    /* BLOOD PRESSURE */
+
+    if (information.bloodPressure) {
+
+        html += `
+            <div class="medical-item">
+
+                <strong>
+                    🩸 Blood Pressure:
+                </strong>
+
+                ${escapeHTML(
+                    information.bloodPressure
+                )}
+
+            </div>
+        `;
+
+    }
+
+
+    /* LAB RESULTS */
+
+    if (
+        Array.isArray(
+            information.labResults
+        ) &&
+        information.labResults.length > 0
+    ) {
+
+        html += `
+            <h3>
+                🧪 Laboratory Results
+            </h3>
+        `;
+
+
+        information.labResults.forEach(
+            function(item) {
+
+                html += `
+                    <div class="medical-item">
+
+                        ${escapeHTML(item)}
+
+                    </div>
+                `;
+
+            }
+        );
+
+    }
+
+
+    /* MEDICINES */
+
+    if (
+        Array.isArray(
+            information.medicines
+        ) &&
+        information.medicines.length > 0
+    ) {
+
+        html += `
+            <h3>
+                💊 Medicines
+            </h3>
+        `;
+
+
+        information.medicines.forEach(
+            function(item) {
+
+                html += `
+                    <div class="medical-item">
+
+                        • ${escapeHTML(item)}
+
+                    </div>
+                `;
+
+            }
+        );
+
+    }
+
+
+    /* COMMENTS */
+
+    if (
+        Array.isArray(
+            information.comments
+        ) &&
+        information.comments.length > 0
+    ) {
+
+        html += `
+            <h3>
+                📋 Report Comments
+            </h3>
+        `;
+
+
+        information.comments.forEach(
+            function(item) {
+
+                html += `
+                    <div class="medical-item">
+
+                        • ${escapeHTML(item)}
+
+                    </div>
+                `;
+
+            }
+        );
+
+    }
+
+
+    /* NOTHING FOUND */
+
+    if (html === "") {
+
+        html = `
+            <p class="empty">
+
+                No structured medical
+                information detected.
+
+            </p>
+        `;
+
+    }
+
+
+    aiContent.innerHTML =
+        html;
+
+}
+else {
+
+    aiContent.innerHTML =
+        `
+        <p class="empty">
+
+            AI medical extraction
+            was not performed.
+
+        </p>
+        `;
+
+}
+
+
+/* =========================================
+   HTML ESCAPE
+========================================= */
+
+function escapeHTML(value) {
+
+    return String(value)
+
+        .replace(
+            /&/g,
+            "&amp;"
+        )
+
+        .replace(
+            /</g,
+            "&lt;"
+        )
+
+        .replace(
+            />/g,
+            "&gt;"
+        )
+
+        .replace(
+            /"/g,
+            "&quot;"
+        )
+
+        .replace(
+            /'/g,
+            "&#039;"
+        );
+
+}
+
+
+/* =========================================
+   FORMAT ADAPTIVE LABEL
+========================================= */
+
+function formatAdaptiveLabel(key) {
+
+    return String(key)
+
+        .replace(
+            /_/g,
+            " "
+        )
+
+        .replace(
+            /\b\w/g,
+            function(letter) {
+
+                return letter.toUpperCase();
+
+            }
+        );
+
+}
+
+
+/* =========================================
+   SEND TO DOCTOR
+========================================= */
+
+function sendToDoctor() {
+
+    let doctorCases = [];
+
+    try {
+
+        doctorCases =
+            JSON.parse(
+                localStorage.getItem(
+                    "doctorCases"
+                ) || "[]"
+            );
+
+        if (
+            !Array.isArray(
+                doctorCases
+            )
+        ) {
+
+            doctorCases = [];
+
+        }
+
+    }
+    catch (error) {
+
+        doctorCases = [];
+
+    }
+
+
+    /*
+       Avoid adding same case repeatedly
+    */
+
+    const alreadyExists =
+        doctorCases.some(
+            function(item) {
+
+                return item.id ===
+                    patientData.id;
+
+            }
+        );
+
+
+    if (!alreadyExists) {
+
+        doctorCases.unshift(
+            patientData
+        );
+
+    }
+
+
+    localStorage.setItem(
+        "doctorCases",
+        JSON.stringify(
+            doctorCases
+        )
+    );
+
+
+    alert(
+        "✅ Complete patient report sent to doctor successfully!"
+    );
+
+
+    /*
+       Open doctor page
+    */
+
+    window.location.href =
+        "doctor.html";
+
+}
+
+
+/* =========================================
+   HISTORY
+========================================= */
+
+function goToHistory() {
+
+    const lang =
+        patientData.language
+        || new URLSearchParams(
+            window.location.search
+        ).get("lang")
+        || "en";
+
+
+    window.location.href =
+        "history.html?lang=" +
+        encodeURIComponent(lang);
+
+}
+
+</script>
+
+</body>
+
+</html>

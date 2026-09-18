@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>MediKiosk - Patient Dashboard</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <div class="home-container">
+
+        <div class="logo">🏥</div>
+
+        <h1 id="title">Patient Dashboard</h1>
+
+        <p id="welcome">
+            Welcome! Let's record your medical history.
+        </p>
+
+        <button onclick="startCaseTaking()" id="startBtn">
+            📝 Start Case Taking
+        </button>
+
+        <br><br>
+
+        <button onclick="viewHistory()" id="historyBtn">
+    📋 View My History
+</button>
+<br><br>
+
+<button onclick="viewABDM()" id="abdmBtn">
+    🇮🇳 ABDM / Digital Health
+</button>
+
+<br><br>
+
+<button onclick="openAyush()" id="ayushBtn">
+    🌿 AYUSH History
+</button>
+        
+
+    </div>
+
+
+    <script>
+
+        const params = new URLSearchParams(window.location.search);
+
+        const language = params.get("lang");
+
+        const role = params.get("role");
+
+
+        // Kannada
+        if (language === "kn") {
+
+            document.getElementById("title").innerText =
+                "ರೋಗಿಯ ಡ್ಯಾಶ್‌ಬೋರ್ಡ್";
+
+            document.getElementById("welcome").innerText =
+                "ಸ್ವಾಗತ! ನಿಮ್ಮ ವೈದ್ಯಕೀಯ ಇತಿಹಾಸವನ್ನು ದಾಖಲಿಸೋಣ.";
+
+            document.getElementById("startBtn").innerText =
+                "📝 ಕೇಸ್ ತೆಗೆದುಕೊಳ್ಳಲು ಪ್ರಾರಂಭಿಸಿ";
+
+            document.getElementById("historyBtn").innerText =
+                "📋 ನನ್ನ ಇತಿಹಾಸವನ್ನು ವೀಕ್ಷಿಸಿ"; 
+                document.getElementById("abdmBtn").innerText =
+    "🇮🇳 ABDM / ಡಿಜಿಟಲ್ ಆರೋಗ್ಯ";
+                
+        }
+
+
+        // Hindi
+        else if (language === "hi") {
+
+            document.getElementById("title").innerText =
+                "मरीज डैशबोर्ड";
+
+            document.getElementById("welcome").innerText =
+                "स्वागत है! आइए आपका चिकित्सा इतिहास दर्ज करें।";
+
+            document.getElementById("startBtn").innerText =
+                "📝 केस लेना शुरू करें";
+
+            document.getElementById("historyBtn").innerText =
+                "📋 मेरा इतिहास देखें";
+                document.getElementById("abdmBtn").innerText =
+    "🇮🇳 ABDM / डिजिटल स्वास्थ्य";
+        }
+
+
+        // English
+        else {
+
+            document.getElementById("title").innerText =
+                "Patient Dashboard";
+
+            document.getElementById("welcome").innerText =
+                "Welcome! Let's record your medical history.";
+
+            document.getElementById("startBtn").innerText =
+                "📝 Start Case Taking";
+
+            document.getElementById("historyBtn").innerText =
+                "📋 View My History";
+                document.getElementById("abdmBtn").innerText =
+    "🇮🇳 ABDM / Digital Health";
+        }
+
+
+        function startCaseTaking() {
+
+            window.location.href =
+                "case-taking.html?lang=" + language;
+        }
+
+
+        function viewHistory() {
+
+    window.location.href =
+        "history.html?lang=" + language;
+
+}
+function viewABDM() {
+
+    window.location.href =
+        "patient-abdm.html?role=patient&lang=" +
+        encodeURIComponent(language);
+
+}
+function openAyush() {
+
+    window.location.href =
+        "ayush.html?role=patient&lang=" +
+        encodeURIComponent(language || "en");
+
+}
+
+    </script>
+
+</body>
+
+</html>

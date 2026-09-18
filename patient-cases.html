@@ -1,0 +1,932 @@
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>MediKiosk - Patient Cases</title>
+
+    <link rel="stylesheet"
+          href="style.css">
+
+    <style>
+
+        .search-box {
+            width: 90%;
+            max-width: 600px;
+            margin: 20px auto;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 14px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            box-sizing: border-box;
+        }
+
+        .patient-card {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.12);
+            text-align: left;
+        }
+
+        .patient-card h2 {
+            margin-top: 0;
+        }
+
+        .patient-info {
+            margin: 10px 0;
+            padding: 6px;
+        }
+
+        .patient-info strong {
+            display: inline-block;
+            min-width: 170px;
+        }
+
+        .details-box {
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid #ddd;
+        }
+
+        .document-box {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f8f8;
+            border-radius: 12px;
+        }
+
+        .document-image {
+            max-width: 100%;
+            max-height: 500px;
+            margin-top: 15px;
+            border-radius: 10px;
+            border: 1px solid #ddd;
+        }
+
+        .document-link {
+            display: inline-block;
+            margin-top: 15px;
+            padding: 10px 15px;
+            border-radius: 8px;
+            text-decoration: none;
+            background: #eeeeee;
+        }
+
+        .details-btn {
+            margin-top: 15px;
+        }
+
+        .empty-message {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.12);
+            margin-top: 20px;
+        }
+
+        .patient-count {
+            font-weight: bold;
+            margin: 15px;
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+<div class="home-container">
+
+    <div class="logo">👨‍⚕️</div>
+
+    <h1 id="title">
+        Patient Cases
+    </h1>
+
+    <p id="subtitle">
+        All patient cases collected by MediKiosk
+    </p>
+
+
+    <!-- SEARCH -->
+
+    <div class="search-box">
+
+        <input
+            type="text"
+            id="searchPatient"
+            placeholder="🔍 Search patient by name..."
+            oninput="searchPatients()"
+        >
+
+    </div>
+
+
+    <p id="patientCount"
+       class="patient-count">
+    </p>
+
+
+    <!-- PATIENTS -->
+
+    <div id="patientsContainer"></div>
+
+
+    <br>
+
+
+    <button
+        onclick="goBack()"
+        id="backBtn">
+
+        ⬅️ Back to Doctor Dashboard
+
+    </button>
+
+</div>
+
+
+<script>
+
+/* =====================================================
+   LANGUAGE
+===================================================== */
+
+const params =
+    new URLSearchParams(window.location.search);
+
+const language =
+    params.get("lang") || "en";
+
+
+/* =====================================================
+   LANGUAGE TEXT
+===================================================== */
+
+const texts = {
+
+    en: {
+
+        title: "Patient Cases",
+
+        subtitle:
+            "All patient cases collected by MediKiosk",
+
+        search:
+            "🔍 Search patient by name...",
+
+        count:
+            "Total Patients",
+
+        name:
+            "Name",
+
+        username:
+            "Patient Login",
+
+        age:
+            "Age",
+
+        gender:
+            "Gender",
+
+        complaint:
+            "Main Problem",
+
+        duration:
+            "Duration",
+
+        symptoms:
+            "Symptoms",
+
+        history:
+            "Medical History",
+
+        allergies:
+            "Allergies",
+
+        medicines:
+            "Current Medicines",
+
+        viewDetails:
+            "👁️ View Details",
+
+        hideDetails:
+            "🔽 Hide Details",
+
+        document:
+            "📄 Medical Document",
+
+        noDocument:
+            "📄 No medical document uploaded.",
+
+        noCases:
+            "No patient cases",
+
+        noPatient:
+            "No patient has been saved yet.",
+
+        noSearch:
+            "No patient found.",
+
+        back:
+            "⬅️ Back to Doctor Dashboard"
+
+    },
+
+
+    kn: {
+
+        title:
+            "ರೋಗಿಯ ಕೇಸ್‌ಗಳು",
+
+        subtitle:
+            "MediKiosk ಸಂಗ್ರಹಿಸಿದ ಎಲ್ಲಾ ರೋಗಿಯ ಕೇಸ್‌ಗಳು",
+
+        search:
+            "🔍 ರೋಗಿಯ ಹೆಸರಿನಿಂದ ಹುಡುಕಿ...",
+
+        count:
+            "ಒಟ್ಟು ರೋಗಿಗಳು",
+
+        name:
+            "ಹೆಸರು",
+
+        username:
+            "ರೋಗಿಯ ಲಾಗಿನ್",
+
+        age:
+            "ವಯಸ್ಸು",
+
+        gender:
+            "ಲಿಂಗ",
+
+        complaint:
+            "ಮುಖ್ಯ ಸಮಸ್ಯೆ",
+
+        duration:
+            "ಅವಧಿ",
+
+        symptoms:
+            "ಲಕ್ಷಣಗಳು",
+
+        history:
+            "ವೈದ್ಯಕೀಯ ಇತಿಹಾಸ",
+
+        allergies:
+            "ಅಲರ್ಜಿ",
+
+        medicines:
+            "ಪ್ರಸ್ತುತ ಔಷಧಿಗಳು",
+
+        viewDetails:
+            "👁️ ವಿವರಗಳನ್ನು ವೀಕ್ಷಿಸಿ",
+
+        hideDetails:
+            "🔽 ವಿವರಗಳನ್ನು ಮರೆಮಾಡಿ",
+
+        document:
+            "📄 ವೈದ್ಯಕೀಯ ದಾಖಲೆ",
+
+        noDocument:
+            "📄 ಯಾವುದೇ ವೈದ್ಯಕೀಯ ದಾಖಲೆ ಅಪ್‌ಲೋಡ್ ಮಾಡಿಲ್ಲ.",
+
+        noCases:
+            "ಯಾವುದೇ ರೋಗಿಯ ಕೇಸ್‌ಗಳಿಲ್ಲ",
+
+        noPatient:
+            "ಇನ್ನೂ ಯಾವುದೇ ರೋಗಿಯನ್ನು ಉಳಿಸಿಲ್ಲ.",
+
+        noSearch:
+            "ಯಾವುದೇ ರೋಗಿ ಕಂಡುಬಂದಿಲ್ಲ.",
+
+        back:
+            "⬅️ ವೈದ್ಯರ ಡ್ಯಾಶ್‌ಬೋರ್ಡ್‌ಗೆ ಹಿಂತಿರುಗಿ"
+
+    },
+
+
+    hi: {
+
+        title:
+            "मरीज के केस",
+
+        subtitle:
+            "MediKiosk द्वारा एकत्रित सभी मरीज के केस",
+
+        search:
+            "🔍 मरीज के नाम से खोजें...",
+
+        count:
+            "कुल मरीज",
+
+        name:
+            "नाम",
+
+        username:
+            "मरीज लॉगिन",
+
+        age:
+            "उम्र",
+
+        gender:
+            "लिंग",
+
+        complaint:
+            "मुख्य समस्या",
+
+        duration:
+            "अवधि",
+
+        symptoms:
+            "लक्षण",
+
+        history:
+            "चिकित्सा इतिहास",
+
+        allergies:
+            "एलर्जी",
+
+        medicines:
+            "वर्तमान दवाएं",
+
+        viewDetails:
+            "👁️ विवरण देखें",
+
+        hideDetails:
+            "🔽 विवरण छिपाएं",
+
+        document:
+            "📄 चिकित्सा दस्तावेज़",
+
+        noDocument:
+            "📄 कोई चिकित्सा दस्तावेज़ अपलोड नहीं किया गया।",
+
+        noCases:
+            "कोई मरीज केस नहीं",
+
+        noPatient:
+            "अभी तक कोई मरीज सेव नहीं किया गया है।",
+
+        noSearch:
+            "कोई मरीज नहीं मिला।",
+
+        back:
+            "⬅️ डॉक्टर डैशबोर्ड पर वापस जाएं"
+
+    }
+
+};
+
+
+const t =
+    texts[language] || texts.en;
+
+
+/* =====================================================
+   APPLY LANGUAGE
+===================================================== */
+
+document.getElementById("title").innerText =
+    t.title;
+
+document.getElementById("subtitle").innerText =
+    t.subtitle;
+
+document.getElementById("searchPatient").placeholder =
+    t.search;
+
+document.getElementById("backBtn").innerText =
+    t.back;
+
+
+/* =====================================================
+   GET PATIENTS
+===================================================== */
+
+const patients =
+    JSON.parse(
+        localStorage.getItem("patients") || "[]"
+    );
+
+
+const patientsContainer =
+    document.getElementById(
+        "patientsContainer"
+    );
+
+
+const patientCount =
+    document.getElementById(
+        "patientCount"
+    );
+
+
+/* =====================================================
+   CREATE DOCUMENT HTML
+===================================================== */
+
+function createDocumentHTML(patient) {
+
+    if (!patient.document) {
+
+        return `
+
+            <div class="document-box">
+
+                <p>
+                    ${t.noDocument}
+                </p>
+
+            </div>
+
+        `;
+
+    }
+
+
+    /* IMAGE */
+
+    if (
+        patient.document.startsWith("data:image")
+    ) {
+
+        return `
+
+            <div class="document-box">
+
+                <h3>
+                    ${t.document}
+                </h3>
+
+                <p>
+                    ${
+                        patient.documentName ||
+                        "Medical Document"
+                    }
+                </p>
+
+                <img
+                    src="${patient.document}"
+                    class="document-image"
+                    alt="Medical Document"
+                >
+
+            </div>
+
+        `;
+
+    }
+
+
+    /* PDF */
+
+    if (
+        patient.document.startsWith(
+            "data:application/pdf"
+        )
+    ) {
+
+        return `
+
+            <div class="document-box">
+
+                <h3>
+                    ${t.document}
+                </h3>
+
+                <p>
+                    ${
+                        patient.documentName ||
+                        "Medical Document"
+                    }
+                </p>
+
+                <iframe
+                    src="${patient.document}"
+                    width="100%"
+                    height="500"
+                    style="border:none;">
+                </iframe>
+
+            </div>
+
+        `;
+
+    }
+
+
+    /* OTHER FILE */
+
+    return `
+
+        <div class="document-box">
+
+            <h3>
+                ${t.document}
+            </h3>
+
+            <p>
+                ${
+                    patient.documentName ||
+                    "Medical Document"
+                }
+            </p>
+
+            <a
+                href="${patient.document}"
+                target="_blank"
+                class="document-link"
+            >
+                📄 Open Medical Document
+            </a>
+
+        </div>
+
+    `;
+
+}
+
+
+/* =====================================================
+   DISPLAY PATIENTS
+===================================================== */
+
+function displayPatients(patientList) {
+
+    patientsContainer.innerHTML = "";
+
+
+    /* NO PATIENT */
+
+    if (patientList.length === 0) {
+
+        patientsContainer.innerHTML = `
+
+            <div class="empty-message">
+
+                <h2>
+                    📋 ${t.noCases}
+                </h2>
+
+                <p>
+                    ${
+                        patients.length === 0
+                            ? t.noPatient
+                            : t.noSearch
+                    }
+                </p>
+
+            </div>
+
+        `;
+
+        patientCount.innerText =
+            t.count + ": 0";
+
+        return;
+
+    }
+
+
+    patientCount.innerText =
+        t.count + ": " + patientList.length;
+
+
+    /* PATIENT CARDS */
+
+    patientList.forEach(
+        function(patient) {
+
+            const originalIndex =
+                patients.indexOf(patient);
+
+
+            const card =
+                document.createElement("div");
+
+            card.className =
+                "patient-card";
+
+
+            card.innerHTML = `
+
+                <h2>
+                    👤 Patient #${originalIndex + 1}
+                </h2>
+
+
+                <!-- BASIC INFORMATION -->
+
+                <div class="patient-info">
+
+                    <strong>
+                        ${t.name}:
+                    </strong>
+
+                    ${
+                        patient.name ||
+                        "Not provided"
+                    }
+
+                </div>
+
+
+                <div class="patient-info">
+
+                    <strong>
+                        ${t.username}:
+                    </strong>
+
+                    ${
+                        patient.username ||
+                        patient.name ||
+                        "Not available"
+                    }
+
+                </div>
+
+
+                <div class="patient-info">
+
+                    <strong>
+                        ${t.age}:
+                    </strong>
+
+                    ${
+                        patient.age ||
+                        "Not provided"
+                    }
+
+                </div>
+
+
+                <div class="patient-info">
+
+                    <strong>
+                        ${t.gender}:
+                    </strong>
+
+                    ${
+                        patient.gender ||
+                        "Not provided"
+                    }
+
+                </div>
+
+
+                <div class="patient-info">
+
+                    <strong>
+                        ${t.complaint}:
+                    </strong>
+
+                    ${
+                        patient.complaint ||
+                        "Not provided"
+                    }
+
+                </div>
+
+
+                <!-- VIEW DETAILS BUTTON -->
+
+                <button
+                    type="button"
+                    class="details-btn"
+                    onclick="toggleDetails(${originalIndex})"
+                    id="detailsBtn-${originalIndex}"
+                >
+                    ${t.viewDetails}
+                </button>
+
+
+                <!-- HIDDEN DETAILS -->
+
+                <div
+                    id="details-${originalIndex}"
+                    class="details-box"
+                    style="display:none;"
+                >
+
+                    <div class="patient-info">
+
+                        <strong>
+                            ${t.duration}:
+                        </strong>
+
+                        ${
+                            patient.duration ||
+                            "Not provided"
+                        }
+
+                    </div>
+
+
+                    <div class="patient-info">
+
+                        <strong>
+                            ${t.symptoms}:
+                        </strong>
+
+                        ${
+                            patient.symptoms ||
+                            "Not provided"
+                        }
+
+                    </div>
+
+
+                    <div class="patient-info">
+
+                        <strong>
+                            ${t.history}:
+                        </strong>
+
+                        ${
+                            patient.history ||
+                            "Not provided"
+                        }
+
+                    </div>
+
+
+                    <div class="patient-info">
+
+                        <strong>
+                            ${t.allergies}:
+                        </strong>
+
+                        ${
+                            patient.allergies ||
+                            "Not provided"
+                        }
+
+                    </div>
+
+
+                    <div class="patient-info">
+
+                        <strong>
+                            ${t.medicines}:
+                        </strong>
+
+                        ${
+                            patient.medicines ||
+                            "Not provided"
+                        }
+
+                    </div>
+
+
+                    ${createDocumentHTML(patient)}
+
+                </div>
+
+            `;
+
+
+            patientsContainer.appendChild(card);
+
+        }
+    );
+
+}
+
+
+/* =====================================================
+   SHOW / HIDE DETAILS
+===================================================== */
+
+function toggleDetails(index) {
+
+    const details =
+        document.getElementById(
+            "details-" + index
+        );
+
+    const button =
+        document.getElementById(
+            "detailsBtn-" + index
+        );
+
+
+    if (
+        details.style.display === "none"
+    ) {
+
+        details.style.display =
+            "block";
+
+        button.innerText =
+            t.hideDetails;
+
+    }
+
+    else {
+
+        details.style.display =
+            "none";
+
+        button.innerText =
+            t.viewDetails;
+
+    }
+
+}
+
+
+/* =====================================================
+   SEARCH PATIENT
+===================================================== */
+
+function searchPatients() {
+
+    const searchText =
+        document.getElementById(
+            "searchPatient"
+        )
+        .value
+        .trim()
+        .toLowerCase();
+
+
+    if (searchText === "") {
+
+        displayPatients(patients);
+
+        return;
+
+    }
+
+
+    const filteredPatients =
+        patients.filter(
+            function(patient) {
+
+                const name =
+                    (
+                        patient.name || ""
+                    ).toLowerCase();
+
+
+                const username =
+                    (
+                        patient.username || ""
+                    ).toLowerCase();
+
+
+                return (
+                    name.includes(searchText) ||
+                    username.includes(searchText)
+                );
+
+            }
+        );
+
+
+    displayPatients(
+        filteredPatients
+    );
+
+}
+
+
+/* =====================================================
+   INITIAL DISPLAY
+===================================================== */
+
+displayPatients(patients);
+
+
+/* =====================================================
+   BACK TO DOCTOR DASHBOARD
+===================================================== */
+
+function goBack() {
+
+    window.location.href =
+        "doctor-dashboard.html?role=doctor&lang=" +
+        language;
+
+}
+
+</script>
+
+</body>
+
+</html>
+```

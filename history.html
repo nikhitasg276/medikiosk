@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>MediKiosk - Patient History</title>
+
+    <link rel="stylesheet" href="style.css">
+
+    <style>
+
+        .history-container {
+            width: 90%;
+            max-width: 800px;
+            margin: 20px auto;
+        }
+
+        .history-card {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.12);
+            text-align: left;
+        }
+
+        .history-card h2 {
+            margin-top: 0;
+        }
+
+        .history-item {
+            margin: 10px 0;
+            padding: 8px;
+        }
+
+        .history-item strong {
+            display: inline-block;
+            min-width: 150px;
+        }
+
+        .document-box {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f5f5f5;
+            border-radius: 10px;
+        }
+
+        .document-image {
+            max-width: 100%;
+            max-height: 500px;
+            margin-top: 10px;
+            border-radius: 10px;
+            border: 1px solid #ddd;
+        }
+
+        .empty-message {
+            padding: 25px;
+            background: white;
+            border-radius: 15px;
+            margin-top: 25px;
+        }
+
+        .back-btn {
+            margin-top: 15px;
+        }
+
+        @media print {
+
+            button {
+                display: none;
+            }
+
+            .home-container {
+                box-shadow: none;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+<div class="home-container">
+
+    <div class="logo">📋</div>
+
+    <h1 id="title">
+        My Medical History
+    </h1>
+
+    <p id="subtitle">
+        Your saved clinical history
+    </p>
+
+
+    <div id="historyContainer"
+         class="history-container">
+    </div>
+
+
+    <br>
+
+
+    <button onclick="window.print()" id="printBtn">
+        🖨️ Print History
+    </button>
+
+
+    <button onclick="goBack()"
+            id="backBtn"
+            class="back-btn">
+
+        ⬅️ Back to Dashboard
+
+    </button>
+
+</div>
+
+
+
+<script>
+
+/* =====================================================
+   GET LANGUAGE
+===================================================== */
+
+const params =
+    new URLSearchParams(window.location.search);
+
+const language =
+    params.get("lang") || "en";
+
+
+/* =====================================================
+   TEXT
+===================================================== */
+
+const texts = {
+
+    en: {
+
+        title: "My Medical History",
+
+        subtitle:
+            "Your saved clinical history",
+
+        print:
+            "🖨️ Print History",
+
+        back:
+            "⬅️ Back to Dashboard",
+
+        name:
+            "Patient Name",
+
+        age:
+            "Age",
+
+        gender:
+            "Gender",
+
+        complaint:
+            "Main Problem",
+
+        duration:
+            "Since When",
+
+        symptoms:
+            "Symptoms",
+
+        history:
+            "Medical History",
+
+        allergies:
+            "Allergies",
+
+        medicines:
+            "Current Medicines",
+
+        document:
+            "Medical Document",
+
+        ocr:
+            "OCR Extracted Text",
+
+        noDocument:
+            "No medical document uploaded.",
+
+        empty:
+            "No patient history available yet."
+
+    },
+
+    kn: {
+
+        title:
+            "ನನ್ನ ವೈದ್ಯಕೀಯ ಇತಿಹಾಸ",
+
+        subtitle:
+            "ನಿಮ್ಮ ಉಳಿಸಿದ ವೈದ್ಯಕೀಯ ಇತಿಹಾಸ",
+
+        print:
+            "🖨️ ಇತಿಹಾಸವನ್ನು ಮುದ್ರಿಸಿ",
+
+        back:
+            "⬅️ ಡ್ಯಾಶ್‌ಬೋರ್ಡ್‌ಗೆ ಹಿಂತಿರುಗಿ",
+
+        name:
+            "ರೋಗಿಯ ಹೆಸರು",
+
+        age:
+            "ವಯಸ್ಸು",
+
+        gender:
+            "ಲಿಂಗ",
+
+        complaint:
+            "ಮುಖ್ಯ ಸಮಸ್ಯೆ",
+
+        duration:
+            "ಯಾವಾಗಿನಿಂದ",
+
+        symptoms:
+            "ಲಕ್ಷಣಗಳು",
+
+        history:
+            "ವೈದ್ಯಕೀಯ ಇತಿಹಾಸ",
+
+        allergies:
+            "ಅಲರ್ಜಿ",
+
+        medicines:
+            "ಪ್ರಸ್ತುತ ಔಷಧಿಗಳು",
+
+        document:
+            "ವೈದ್ಯಕೀಯ ದಾಖಲೆ",
+
+        ocr:
+            "OCR ಮೂಲಕ ಪಡೆದ ಮಾಹಿತಿ",
+
+        noDocument:
+            "ಯಾವುದೇ ವೈದ್ಯಕೀಯ ದಾಖಲೆ ಅಪ್‌ಲೋಡ್ ಮಾಡಿಲ್ಲ.",
+
+        empty:
+            "ಇನ್ನೂ ಯಾವುದೇ ರೋಗಿಯ ಇತಿಹಾಸ ಲಭ್ಯವಿಲ್ಲ."
+
+    },
+
+    hi: {
+
+        title:
+            "मेरा चिकित्सा इतिहास",
+
+        subtitle:
+            "आपका सुरक्षित चिकित्सा इतिहास",
+
+        print:
+            "🖨️ इतिहास प्रिंट करें",
+
+        back:
+            "⬅️ डैशबोर्ड पर वापस जाएं",
+
+        name:
+            "मरीज का नाम",
+
+        age:
+            "उम्र",
+
+        gender:
+            "लिंग",
+
+        complaint:
+            "मुख्य समस्या",
+
+        duration:
+            "कब से",
+
+        symptoms:
+            "लक्षण",
+
+        history:
+            "चिकित्सा इतिहास",
+
+        allergies:
+            "एलर्जी",
+
+        medicines:
+            "वर्तमान दवाएं",
+
+        document:
+            "चिकित्सा दस्तावेज़",
+
+        ocr:
+            "OCR से निकाली गई जानकारी",
+
+        noDocument:
+            "कोई चिकित्सा दस्तावेज़ अपलोड नहीं किया गया है।",
+
+        empty:
+            "अभी तक कोई मरीज इतिहास उपलब्ध नहीं है।"
+
+    }
+
+};
+
+
+const t =
+    texts[language] || texts.en;
+
+
+/* =====================================================
+   APPLY LANGUAGE
+===================================================== */
+
+document.getElementById("title").innerText =
+    t.title;
+
+document.getElementById("subtitle").innerText =
+    t.subtitle;
+
+document.getElementById("printBtn").innerText =
+    t.print;
+
+document.getElementById("backBtn").innerText =
+    t.back;
+
+
+/* =====================================================
+   GET LOGGED-IN USER
+===================================================== */
+
+const loggedInUser =
+    localStorage.getItem("loggedInUser");
+
+
+/* =====================================================
+   CHECK LOGIN
+===================================================== */
+
+if (!loggedInUser) {
+
+    alert("Please login first.");
+
+    window.location.href =
+        "login.html?role=patient&lang=" +
+        encodeURIComponent(language);
+
+}
+
+
+/* =====================================================
+   GET SAVED PATIENTS
+===================================================== */
+
+let allPatients = [];
+
+try {
+
+    allPatients =
+        JSON.parse(
+            localStorage.getItem("patients") || "[]"
+        );
+
+}
+catch (error) {
+
+    console.error(
+        "Patient data error:",
+        error
+    );
+
+    allPatients = [];
+
+}
+
+
+/* =====================================================
+   GET ONLY CURRENT USER'S HISTORY
+===================================================== */
+
+const patients =
+    allPatients.filter(function(patient) {
+
+        return String(patient.username || "")
+            .trim()
+            .toLowerCase() ===
+            String(loggedInUser)
+                .trim()
+                .toLowerCase();
+
+    });
+
+
+/* =====================================================
+   DISPLAY
+===================================================== */
+
+const container =
+    document.getElementById(
+        "historyContainer"
+    );
+
+
+if (patients.length === 0) {
+
+    container.innerHTML = `
+
+        <div class="empty-message">
+
+            <h2>📋</h2>
+
+            <p>
+                ${t.empty}
+            </p>
+
+            <p>
+                Logged in as:
+                <strong>
+                    ${escapeHTML(loggedInUser)}
+                </strong>
+            </p>
+
+        </div>
+
+    `;
+
+}
+
+
+/* =====================================================
+   SHOW PATIENT CASES
+===================================================== */
+
+else {
+
+    patients.forEach(function(patient) {
+
+        const card =
+            document.createElement("div");
+
+        card.className =
+            "history-card";
+
+
+        /* ===============================
+           DOCUMENT
+        =============================== */
+
+        let documentHTML = "";
+
+if (
+    patient.documentData &&
+    patient.documentData.trim() !== ""
+) {
+
+    if (
+        patient.documentData.startsWith("data:image")
+    ) {
+
+        documentHTML = `
+
+            <div class="document-box">
+
+                <h3>
+                    📄 ${t.document}
+                </h3>
+
+                <p>
+                    ${escapeHTML(
+                        patient.documentName || "Uploaded image"
+                    )}
+                </p>
+
+                <img
+                    src="${patient.documentData}"
+                    class="document-image"
+                    alt="Uploaded Medical Document"
+                >
+
+            </div>
+
+        `;
+
+    }
+
+    else {
+
+        documentHTML = `
+
+            <div class="document-box">
+
+                <h3>
+                    📄 ${t.document}
+                </h3>
+
+                <p>
+                    ${escapeHTML(
+                        patient.documentName || "Uploaded document"
+                    )}
+                </p>
+
+                <p>
+                    ⚠️ Document uploaded, but preview is not available.
+                </p>
+
+            </div>
+
+        `;
+
+    }
+
+}
+
+else {
+
+    documentHTML = `
+
+        <div class="document-box">
+
+            <h3>
+                📄 ${t.document}
+            </h3>
+
+            <p>
+                ${t.noDocument}
+            </p>
+
+        </div>
+
+    `;
+
+}
+
+        /* ===============================
+           OCR
+        =============================== */
+
+        let ocrHTML = "";
+
+
+        if (
+            patient.ocrText &&
+            patient.ocrText.trim() !== ""
+        ) {
+
+            ocrHTML = `
+
+                <div class="document-box">
+
+                    <h3>
+                        🔎 ${t.ocr}
+                    </h3>
+
+                    <pre
+                        style="
+                            white-space:pre-wrap;
+                            text-align:left;
+                            background:white;
+                            padding:15px;
+                            border-radius:10px;
+                        "
+                    >${escapeHTML(
+                        patient.ocrText
+                    )}</pre>
+
+                </div>
+
+            `;
+
+        }
+
+
+        /* ===============================
+           CARD
+        =============================== */
+
+        card.innerHTML = `
+
+            <h2>
+                🩺 ${t.title}
+            </h2>
+
+
+            <div class="history-item">
+                <strong>${t.name}:</strong>
+                ${escapeHTML(patient.name || "Not provided")}
+            </div>
+
+
+            <div class="history-item">
+                <strong>${t.age}:</strong>
+                ${escapeHTML(patient.age || "Not provided")}
+            </div>
+
+
+            <div class="history-item">
+                <strong>${t.gender}:</strong>
+                ${escapeHTML(patient.gender || "Not provided")}
+            </div>
+
+
+            <div class="history-item">
+                <strong>${t.complaint}:</strong>
+                ${escapeHTML(patient.complaint || "Not provided")}
+            </div>
+
+
+            <div class="history-item">
+                <strong>${t.duration}:</strong>
+                ${escapeHTML(patient.duration || "Not provided")}
+            </div>
+
+
+            <div class="history-item">
+                <strong>${t.symptoms}:</strong>
+                ${escapeHTML(patient.symptoms || "Not provided")}
+            </div>
+
+
+            <div class="history-item">
+                <strong>${t.history}:</strong>
+                ${escapeHTML(patient.history || "Not provided")}
+            </div>
+
+
+            <div class="history-item">
+                <strong>${t.allergies}:</strong>
+                ${escapeHTML(patient.allergies || "Not provided")}
+            </div>
+
+
+            <div class="history-item">
+                <strong>${t.medicines}:</strong>
+                ${escapeHTML(patient.medicines || "Not provided")}
+            </div>
+
+
+            ${documentHTML}
+
+            ${ocrHTML}
+
+        `;
+
+
+        container.appendChild(card);
+
+    });
+
+}
+
+
+/* =====================================================
+   ESCAPE HTML
+===================================================== */
+
+function escapeHTML(value) {
+
+    return String(value)
+
+        .replace(/&/g, "&amp;")
+
+        .replace(/</g, "&lt;")
+
+        .replace(/>/g, "&gt;")
+
+        .replace(/"/g, "&quot;")
+
+        .replace(/'/g, "&#039;");
+
+}
+
+
+/* =====================================================
+   BACK BUTTON
+===================================================== */
+
+function goBack() {
+
+    window.location.href =
+        "dashboard.html?role=patient&lang=" +
+        encodeURIComponent(language);
+
+}
+
+</script>
+
+</body>
+
+</html>
